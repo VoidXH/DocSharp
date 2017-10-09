@@ -41,8 +41,13 @@ namespace DocSharp {
                         if (!commentLine && parenthesis == 0) {
                             bool instruction = code[i] == ';', block = code[i] == '{', closing = code[i] == '}';
                             string cutout = code.Substring(lastEnding, i - lastEnding).Trim();
-
                             lastEnding = i + 1;
+
+                            // Remove multiline comments
+                            int commentBlockStart;
+                            while ((commentBlockStart = cutout.IndexOf("/*")) != -1)
+                                cutout = cutout.Substring(0, commentBlockStart) + cutout.Substring(cutout.IndexOf("*/", commentBlockStart + 2) + 2);
+
                             if (cutout.StartsWith("using"))
                                 break;
                             if (cutout.EndsWith("="))
