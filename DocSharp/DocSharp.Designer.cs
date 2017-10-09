@@ -33,6 +33,8 @@
             this.sourceInfo = new System.Windows.Forms.TreeView();
             this.mainSplit = new System.Windows.Forms.SplitContainer();
             this.leftSplit = new System.Windows.Forms.SplitContainer();
+            this.defines = new System.Windows.Forms.TextBox();
+            this.definesLabel = new System.Windows.Forms.Label();
             this.phpFillers = new System.Windows.Forms.CheckBox();
             this.extension = new System.Windows.Forms.ComboBox();
             this.extensionLabel = new System.Windows.Forms.Label();
@@ -48,8 +50,6 @@
             this.exportInternal = new System.Windows.Forms.CheckBox();
             this.exportPublic = new System.Windows.Forms.CheckBox();
             this.infoLabel = new System.Windows.Forms.Label();
-            this.definesLabel = new System.Windows.Forms.Label();
-            this.defines = new System.Windows.Forms.TextBox();
             this.menu.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.mainSplit)).BeginInit();
             this.mainSplit.Panel1.SuspendLayout();
@@ -174,6 +174,23 @@
             this.leftSplit.Size = new System.Drawing.Size(300, 451);
             this.leftSplit.SplitterDistance = 227;
             this.leftSplit.TabIndex = 0;
+            // 
+            // defines
+            // 
+            this.defines.Location = new System.Drawing.Point(108, 148);
+            this.defines.Name = "defines";
+            this.defines.Size = new System.Drawing.Size(188, 20);
+            this.defines.TabIndex = 1134;
+            this.defines.Text = "RELEASE;TRACE";
+            // 
+            // definesLabel
+            // 
+            this.definesLabel.AutoSize = true;
+            this.definesLabel.Location = new System.Drawing.Point(12, 151);
+            this.definesLabel.Name = "definesLabel";
+            this.definesLabel.Size = new System.Drawing.Size(90, 13);
+            this.definesLabel.TabIndex = 1139;
+            this.definesLabel.Text = "Define constants:";
             // 
             // phpFillers
             // 
@@ -331,23 +348,6 @@
             this.infoLabel.Name = "infoLabel";
             this.infoLabel.Size = new System.Drawing.Size(0, 13);
             this.infoLabel.TabIndex = 0;
-            // 
-            // definesLabel
-            // 
-            this.definesLabel.AutoSize = true;
-            this.definesLabel.Location = new System.Drawing.Point(12, 151);
-            this.definesLabel.Name = "definesLabel";
-            this.definesLabel.Size = new System.Drawing.Size(90, 13);
-            this.definesLabel.TabIndex = 1139;
-            this.definesLabel.Text = "Define constants:";
-            // 
-            // defines
-            // 
-            this.defines.Location = new System.Drawing.Point(108, 148);
-            this.defines.Name = "defines";
-            this.defines.Size = new System.Drawing.Size(188, 20);
-            this.defines.TabIndex = 1134;
-            this.defines.Text = "RELEASE;TRACE";
             // 
             // DocSharp
             // 
