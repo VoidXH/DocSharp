@@ -58,7 +58,7 @@ namespace DocSharp {
             foreach (TreeNode entry in node.Nodes) {
                 if (((ObjectInfo)entry.Tag).Exportable) {
                     string entryText = !path.Equals(string.Empty) && entry.Nodes.Count != 0 ? menuElement : menuSubelement;
-                    entryText = entryText.Replace(elementMarker, entry.Name).Replace(linkMarker, path + Utils.LocalLink(entry))
+                    entryText = entryText.Replace(elementMarker, ((ObjectInfo)entry.Tag).Name).Replace(linkMarker, path + Utils.LocalLink(entry))
                     .Replace(indentMarker, indentLength != 0 ? "&nbsp;" + new string(' ', indentLength - 1) : string.Empty);
                     if (appendToFront) {
                         if (entry == child)
@@ -107,7 +107,7 @@ namespace DocSharp {
             while (enumer.MoveNext()) {
                 TreeNode node = (TreeNode)enumer.Current;
                 StringBuilder link = new StringBuilder(((ObjectInfo)node.Tag).Type).Append(" <a href=\"").Append(Utils.LocalLink(node))
-                    .Append("\">").Append(node.Name).Append("</a>");
+                    .Append("\">").Append(((ObjectInfo)node.Tag).Name).Append("</a>");
                 BlockAppend(block, link.ToString(), Utils.QuickSummary(((ObjectInfo)node.Tag).Summary, node));
             }
             return block.Append(@"
@@ -150,14 +150,16 @@ namespace DocSharp {
 
             StringBuilder output = new StringBuilder("<h1>");
             if (node.Tag != null)
-                output.Append(((ObjectInfo)node.Tag).Type).Append(' ');
-            output.Append(node.Name).AppendLine("</h1>");
+                output.Append(((ObjectInfo)node.Tag).Type).Append(' ').Append(((ObjectInfo)node.Tag).Name);
+            else
+                output.Append(node.Name);
+            output.AppendLine("</h1>");
 
             if (node.Tag != null) {
                 ObjectInfo tag = (ObjectInfo)node.Tag;
                 string summary = tag.Summary;
                 BlockStart();
-                output.AppendLine(Utils.RemoveTag(ref summary, "summary", node)).Append("<table>");
+                output.AppendLine(Utils.RemoveTag(ref summary, "summary", node.Nodes.Count != 0 ? node.Nodes[0] : node)).Append("<table>");
                 if (ExportAttributes && !tag.Attributes.Equals(string.Empty)) BlockAppend(output, "Attributes", tag.Attributes);
                 if (tag.Vis != Visibility.Default) BlockAppend(output, "Visibility", tag.Vis.ToString());
                 if (!tag.Modifiers.Equals(string.Empty)) BlockAppend(output, "Modifiers", tag.Modifiers);

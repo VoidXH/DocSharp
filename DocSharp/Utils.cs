@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -11,7 +12,7 @@ namespace DocSharp {
 
     struct ObjectInfo {
         public bool Exportable;
-        public string Attributes, DefaultValue, Extends, Modifiers, Summary, Type;
+        public string Name, Attributes, DefaultValue, Extends, Modifiers, Summary, Type;
         public Visibility Vis;
         public Kinds Kind;
     }
@@ -77,24 +78,20 @@ namespace DocSharp {
         public static void MakeNodeName(TreeNode node, Visibility vis) {
             if (node.Name.Equals(string.Empty)) {
                 int parenthesis = node.Text.IndexOf('(');
-                if (parenthesis == -1)
-                    node.Name = node.Text;
-                else {
-                    string beginning = node.Text.Substring(0, parenthesis);
-                    int tryCount = 0;
-                    while (true) {
-                        string tryWith = beginning + (tryCount++ == 0 ? string.Empty : (tryCount).ToString());
-                        bool found = false;
-                        foreach (TreeNode other in node.Parent.Nodes) {
-                            if (other.Name.Equals(tryWith)) {
-                                found = true;
-                                break;
-                            }
-                        }
-                        if (!found) {
-                            node.Name = tryWith;
+                string nameOnly = parenthesis == -1 ? node.Text : node.Text.Substring(0, parenthesis);
+                int tryCount = 0;
+                while (true) {
+                    string tryWith = nameOnly + (tryCount++ == 0 ? string.Empty : (tryCount).ToString());
+                    bool found = false;
+                    foreach (TreeNode other in node.Parent.Nodes) {
+                        if (other.Name.Equals(tryWith, StringComparison.OrdinalIgnoreCase)) {
+                            found = true;
                             break;
                         }
+                    }
+                    if (!found) {
+                        node.Name = tryWith;
+                        break;
                     }
                 }
             }
@@ -173,21 +170,20 @@ namespace DocSharp {
                 string reference = source.Substring(refStart + 1, refEnd - refStart - 1);
                 bool linked = false, firstRun = true;
                 TreeNode lookingFor = node;
-                string path = node.Name + '\\';
+                string path = string.Empty;
                 while (!linked && lookingFor != null) {
                     IEnumerator children = lookingFor.Nodes.GetEnumerator();
                     while (children.MoveNext()) {
-                        if (((TreeNode)children.Current).Name.Equals(reference)) {
+                        if (((TreeNode)children.Current).Name.Equals(reference, StringComparison.OrdinalIgnoreCase)) {
                             reference = "<a href=\"" + path + LocalLink((TreeNode)children.Current) + "\">" + reference + "</a>";
                             linked = true;
                             break;
                         }
                     }
                     lookingFor = lookingFor.Parent;
-                    if (firstRun) {
-                        path = string.Empty;
+                    if (firstRun)
                         firstRun = false;
-                    } else
+                    else
                         path += "..\\";
                 }
                 source = source.Substring(0, seePos) + reference + source.Substring(seeEnd + 1);

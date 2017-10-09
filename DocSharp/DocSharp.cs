@@ -143,8 +143,8 @@ namespace DocSharp {
                                 }
                                 else
                                     newNode.Tag = new ObjectInfo {
-                                        Attributes = attributes, DefaultValue = defaultValue, Extends = extends, Modifiers = modifiers.Trim(),
-                                        Summary = summary, Type = type, Vis = vis, Kind = kind
+                                        Name = cutout, Attributes = attributes, DefaultValue = defaultValue, Extends = extends,
+                                        Modifiers = modifiers.Trim(), Summary = summary, Type = type, Vis = vis, Kind = kind
                                     };
                                 if (type.Equals(string.Empty) && newNode.Parent.Nodes.Count > 1) // "int a, b;" case, copy tags
                                     newNode.Tag = newNode.Parent.Nodes[newNode.Parent.Nodes.Count - 2].Tag;
