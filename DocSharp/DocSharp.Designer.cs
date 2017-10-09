@@ -48,6 +48,8 @@
             this.exportInternal = new System.Windows.Forms.CheckBox();
             this.exportPublic = new System.Windows.Forms.CheckBox();
             this.infoLabel = new System.Windows.Forms.Label();
+            this.definesLabel = new System.Windows.Forms.Label();
+            this.defines = new System.Windows.Forms.TextBox();
             this.menu.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.mainSplit)).BeginInit();
             this.mainSplit.Panel1.SuspendLayout();
@@ -111,6 +113,7 @@
             // sourceInfo
             // 
             this.sourceInfo.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.sourceInfo.Font = new System.Drawing.Font("Lucida Sans Unicode", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(238)));
             this.sourceInfo.Location = new System.Drawing.Point(0, 0);
             this.sourceInfo.Name = "sourceInfo";
             this.sourceInfo.Size = new System.Drawing.Size(534, 451);
@@ -147,6 +150,8 @@
             // 
             // leftSplit.Panel1
             // 
+            this.leftSplit.Panel1.Controls.Add(this.defines);
+            this.leftSplit.Panel1.Controls.Add(this.definesLabel);
             this.leftSplit.Panel1.Controls.Add(this.phpFillers);
             this.leftSplit.Panel1.Controls.Add(this.extension);
             this.leftSplit.Panel1.Controls.Add(this.extensionLabel);
@@ -167,16 +172,16 @@
             this.leftSplit.Panel2.Controls.Add(this.infoLabel);
             this.leftSplit.Panel2.Padding = new System.Windows.Forms.Padding(12);
             this.leftSplit.Size = new System.Drawing.Size(300, 451);
-            this.leftSplit.SplitterDistance = 220;
+            this.leftSplit.SplitterDistance = 227;
             this.leftSplit.TabIndex = 0;
             // 
             // phpFillers
             // 
             this.phpFillers.AutoSize = true;
-            this.phpFillers.Location = new System.Drawing.Point(15, 175);
+            this.phpFillers.Location = new System.Drawing.Point(15, 201);
             this.phpFillers.Name = "phpFillers";
             this.phpFillers.Size = new System.Drawing.Size(98, 17);
-            this.phpFillers.TabIndex = 1138;
+            this.phpFillers.TabIndex = 1136;
             this.phpFillers.Text = "index.php fillers";
             this.phpFillers.UseVisualStyleBackColor = true;
             // 
@@ -187,16 +192,16 @@
             "html",
             "htm",
             "php"});
-            this.extension.Location = new System.Drawing.Point(92, 148);
+            this.extension.Location = new System.Drawing.Point(108, 174);
             this.extension.Name = "extension";
             this.extension.Size = new System.Drawing.Size(121, 21);
-            this.extension.TabIndex = 13;
+            this.extension.TabIndex = 1135;
             this.extension.Text = "html";
             // 
             // extensionLabel
             // 
             this.extensionLabel.AutoSize = true;
-            this.extensionLabel.Location = new System.Drawing.Point(12, 151);
+            this.extensionLabel.Location = new System.Drawing.Point(12, 177);
             this.extensionLabel.Name = "extensionLabel";
             this.extensionLabel.Size = new System.Drawing.Size(74, 13);
             this.extensionLabel.TabIndex = 11;
@@ -208,7 +213,7 @@
             this.exportAttributes.Location = new System.Drawing.Point(148, 102);
             this.exportAttributes.Name = "exportAttributes";
             this.exportAttributes.Size = new System.Drawing.Size(102, 17);
-            this.exportAttributes.TabIndex = 10;
+            this.exportAttributes.TabIndex = 6;
             this.exportAttributes.Text = "Export attributes";
             this.exportAttributes.UseVisualStyleBackColor = true;
             // 
@@ -220,7 +225,7 @@
             this.expandStructs.Location = new System.Drawing.Point(148, 79);
             this.expandStructs.Name = "expandStructs";
             this.expandStructs.Size = new System.Drawing.Size(96, 17);
-            this.expandStructs.TabIndex = 9;
+            this.expandStructs.TabIndex = 5;
             this.expandStructs.Text = "Expand structs";
             this.expandStructs.UseVisualStyleBackColor = true;
             // 
@@ -241,13 +246,13 @@
             this.expandEnums.Location = new System.Drawing.Point(148, 56);
             this.expandEnums.Name = "expandEnums";
             this.expandEnums.Size = new System.Drawing.Size(96, 17);
-            this.expandEnums.TabIndex = 7;
+            this.expandEnums.TabIndex = 4;
             this.expandEnums.Text = "Expand enums";
             this.expandEnums.UseVisualStyleBackColor = true;
             // 
             // generateButton
             // 
-            this.generateButton.Location = new System.Drawing.Point(197, 194);
+            this.generateButton.Location = new System.Drawing.Point(197, 201);
             this.generateButton.Name = "generateButton";
             this.generateButton.Size = new System.Drawing.Size(100, 23);
             this.generateButton.TabIndex = 1137;
@@ -327,6 +332,23 @@
             this.infoLabel.Size = new System.Drawing.Size(0, 13);
             this.infoLabel.TabIndex = 0;
             // 
+            // definesLabel
+            // 
+            this.definesLabel.AutoSize = true;
+            this.definesLabel.Location = new System.Drawing.Point(12, 151);
+            this.definesLabel.Name = "definesLabel";
+            this.definesLabel.Size = new System.Drawing.Size(90, 13);
+            this.definesLabel.TabIndex = 1139;
+            this.definesLabel.Text = "Define constants:";
+            // 
+            // defines
+            // 
+            this.defines.Location = new System.Drawing.Point(108, 148);
+            this.defines.Name = "defines";
+            this.defines.Size = new System.Drawing.Size(188, 20);
+            this.defines.TabIndex = 1134;
+            this.defines.Text = "RELEASE;TRACE";
+            // 
             // DocSharp
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -381,6 +403,8 @@
         private System.Windows.Forms.CheckBox phpFillers;
         private System.Windows.Forms.ToolStripMenuItem helpToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem aboutToolStripMenuItem;
+        private System.Windows.Forms.Label definesLabel;
+        private System.Windows.Forms.TextBox defines;
     }
 }
 
