@@ -21,6 +21,8 @@ namespace DocSharp {
             "abstract ", "async ", "const ", "event ", "extern ", "new ", "override ", "partial ",
             "readonly ", "sealed ", "static ", "unsafe ", "virtual ", "volatile "
         };
+
+        public static readonly char[] visibilities = { 'x', '-', '#', '~', '+' };
     }
 
     static class Utils {
@@ -56,7 +58,7 @@ namespace DocSharp {
         public static TreeNode GetNodeByText(TreeNode parent, string text) {
             IEnumerator enumer = parent.Nodes.GetEnumerator();
             while (enumer.MoveNext())
-                if (((TreeNode)enumer.Current).Text.Equals(text))
+                if (((TreeNode)enumer.Current).Name.Equals(text))
                     return (TreeNode)enumer.Current;
             return null;
         }
@@ -72,7 +74,7 @@ namespace DocSharp {
                 .Append(Design.Extension).ToString();
         }
 
-        public static void MakeNodeName(TreeNode node) {
+        public static void MakeNodeName(TreeNode node, Visibility vis) {
             if (node.Name.Equals(string.Empty)) {
                 int parenthesis = node.Text.IndexOf('(');
                 if (parenthesis == -1)
@@ -91,11 +93,13 @@ namespace DocSharp {
                         }
                         if (!found) {
                             node.Name = tryWith;
-                            return;
+                            break;
                         }
                     }
                 }
             }
+            if (vis != Visibility.Default)
+                node.Text = Constants.visibilities[(int)vis] + node.Text;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -169,11 +173,11 @@ namespace DocSharp {
                 string reference = source.Substring(refStart + 1, refEnd - refStart - 1);
                 bool linked = false, firstRun = true;
                 TreeNode lookingFor = node;
-                string path = node.Text + '\\';
+                string path = node.Name + '\\';
                 while (!linked && lookingFor != null) {
                     IEnumerator children = lookingFor.Nodes.GetEnumerator();
                     while (children.MoveNext()) {
-                        if (((TreeNode)children.Current).Text.Equals(reference)) {
+                        if (((TreeNode)children.Current).Name.Equals(reference)) {
                             reference = "<a href=\"" + path + LocalLink((TreeNode)children.Current) + "\">" + reference + "</a>";
                             linked = true;
                             break;

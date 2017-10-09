@@ -58,7 +58,7 @@ namespace DocSharp {
             foreach (TreeNode entry in node.Nodes) {
                 if (((ObjectInfo)entry.Tag).Exportable) {
                     string entryText = !path.Equals(string.Empty) && entry.Nodes.Count != 0 ? menuElement : menuSubelement;
-                    entryText = entryText.Replace(elementMarker, entry.Text).Replace(linkMarker, path + Utils.LocalLink(entry))
+                    entryText = entryText.Replace(elementMarker, entry.Name).Replace(linkMarker, path + Utils.LocalLink(entry))
                     .Replace(indentMarker, indentLength != 0 ? "&nbsp;" + new string(' ', indentLength - 1) : string.Empty);
                     if (appendToFront) {
                         if (entry == child)
@@ -99,7 +99,7 @@ namespace DocSharp {
         static string ContentBlock(List<TreeNode> nodes, string title) {
             if (nodes.Count == 0)
                 return string.Empty;
-            nodes.Sort((TreeNode a, TreeNode b) => { return a.Text.CompareTo(b.Text); });
+            nodes.Sort((TreeNode a, TreeNode b) => { return a.Name.CompareTo(b.Name); });
             StringBuilder block = new StringBuilder("<h1>").Append(title).Append(@"</h1>
 <table>");
             IEnumerator enumer = nodes.GetEnumerator();
@@ -107,7 +107,7 @@ namespace DocSharp {
             while (enumer.MoveNext()) {
                 TreeNode node = (TreeNode)enumer.Current;
                 StringBuilder link = new StringBuilder(((ObjectInfo)node.Tag).Type).Append(" <a href=\"").Append(Utils.LocalLink(node))
-                    .Append("\">").Append(node.Text).Append("</a>");
+                    .Append("\">").Append(node.Name).Append("</a>");
                 BlockAppend(block, link.ToString(), Utils.QuickSummary(((ObjectInfo)node.Tag).Summary, node));
             }
             return block.Append(@"
@@ -151,7 +151,7 @@ namespace DocSharp {
             StringBuilder output = new StringBuilder("<h1>");
             if (node.Tag != null)
                 output.Append(((ObjectInfo)node.Tag).Type).Append(' ');
-            output.Append(node.Text).AppendLine("</h1>");
+            output.Append(node.Name).AppendLine("</h1>");
 
             if (node.Tag != null) {
                 ObjectInfo tag = (ObjectInfo)node.Tag;

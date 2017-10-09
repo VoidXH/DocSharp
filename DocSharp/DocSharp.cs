@@ -129,10 +129,8 @@ namespace DocSharp {
                             // Node handling
                             TreeNode newNode = Utils.GetNodeByText(node, cutout);
                             if (!cutout.Equals(string.Empty)) {
-                                if (newNode == null) {
-                                    newNode = node.Nodes.Add(cutout);
-                                    Utils.MakeNodeName(newNode);
-                                }
+                                if (newNode == null)
+                                    Utils.MakeNodeName(newNode = node.Nodes.Add(cutout), vis);
                                 if (block) {
                                     node = newNode;
                                     if (kind == Kinds.Variables)
@@ -177,6 +175,9 @@ namespace DocSharp {
                             lastSlash = i;
                         }
                         break;
+                    case '#':
+                        commentLine = true;
+                        break;
                     case '\n':
                         if (commentLine) {
                             commentLine = false;
@@ -197,10 +198,12 @@ namespace DocSharp {
             string[] files = Directory.GetFiles(path, "*.cs", SearchOption.AllDirectories);
             sourceInfo.Nodes.Clear();
             TreeNode global = import = sourceInfo.Nodes.Add(path.Substring(path.LastIndexOf('\\') + 1));
+            sourceInfo.BeginUpdate();
             foreach (string file in files) {
                 string text = File.ReadAllText(file);
                 ParseBlock(text, global);
             }
+            sourceInfo.EndUpdate();
             Utils.ClearFunctionBodies(global);
         }
 
