@@ -8,14 +8,17 @@ namespace DocSharp {
     public partial class DocSharp : Form {
         TreeNode import;
 
-        void LoadRecent(object sender, EventArgs e) {
-            string recent = ((ToolStripMenuItem)sender).Text;
+        void LoadRecent(string recent) {
             string newRecents = Properties.Settings.Default.Recents;
             int recentPos = newRecents.IndexOf(recent);
             Properties.Settings.Default.Recents = recent + '\n' + newRecents.Substring(0, recentPos) + newRecents.Substring(recentPos + recent.Length + 1);
             Properties.Settings.Default.Save();
             LoadRecents();
             LoadFrom(recent);
+        }
+
+        void LoadRecent(object sender, EventArgs e) {
+            LoadRecent(((ToolStripMenuItem)sender).Text);
         }
 
         void LoadRecents() { // TODO: limit these to 10
@@ -218,7 +221,9 @@ namespace DocSharp {
         void loadSourceToolStripMenuItem_Click(object sender, EventArgs e) {
             if (folderDialog.ShowDialog() == DialogResult.OK) {
                 LoadFrom(folderDialog.SelectedPath);
-                if (!Properties.Settings.Default.Recents.Contains(folderDialog.SelectedPath + '\n')) {
+                if (Properties.Settings.Default.Recents.Contains(folderDialog.SelectedPath + '\n'))
+                    LoadRecent(folderDialog.SelectedPath);
+                else {
                     string newRecents = folderDialog.SelectedPath + '\n' + Properties.Settings.Default.Recents;
                     while (newRecents.Count(c => c == '\n') > 10)
                         newRecents = newRecents.Substring(0, newRecents.LastIndexOf('\n'));
