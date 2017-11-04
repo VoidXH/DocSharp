@@ -9,10 +9,16 @@ namespace DocSharp {
         TreeNode import;
 
         void LoadRecent(object sender, EventArgs e) {
-            LoadFrom(((ToolStripMenuItem)sender).Text);
+            string recent = ((ToolStripMenuItem)sender).Text;
+            string newRecents = Properties.Settings.Default.Recents;
+            int recentPos = newRecents.IndexOf(recent);
+            Properties.Settings.Default.Recents = recent + '\n' + newRecents.Substring(0, recentPos) + newRecents.Substring(recentPos + recent.Length + 1);
+            Properties.Settings.Default.Save();
+            LoadRecents();
+            LoadFrom(recent);
         }
 
-        void LoadRecents() {
+        void LoadRecents() { // TODO: limit these to 10
             loadRecentToolStripMenuItem.DropDownItems.Clear();
             string[] recents = Properties.Settings.Default.Recents.Split('\n');
             for (int i = 0; i < recents.Length - 1; ++i) {
