@@ -140,14 +140,16 @@ namespace DocSharp {
                                     ObjectInfo tag = (ObjectInfo)newNode.Tag;
                                     tag.Summary += summary;
                                     newNode.Tag = tag;
-                                }
-                                else
+                                } else if (type.Equals(string.Empty) && newNode.Parent.Nodes.Count > 1) { // "int a, b;" case, copy tags
+                                    ObjectInfo inherited = (ObjectInfo)newNode.Parent.Nodes[newNode.Parent.Nodes.Count - 2].Tag;
+                                    inherited.Name = cutout;
+                                    inherited.Summary = summary;
+                                    newNode.Tag = inherited;
+                                } else
                                     newNode.Tag = new ObjectInfo {
                                         Name = cutout, Attributes = attributes, DefaultValue = defaultValue, Extends = extends,
                                         Modifiers = modifiers.Trim(), Summary = summary, Type = type, Vis = vis, Kind = kind
                                     };
-                                if (type.Equals(string.Empty) && newNode.Parent.Nodes.Count > 1) // "int a, b;" case, copy tags
-                                    newNode.Tag = newNode.Parent.Nodes[newNode.Parent.Nodes.Count - 2].Tag;
                             }
                             if (closing)
                                 node = node.Parent;
