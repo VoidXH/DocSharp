@@ -21,7 +21,7 @@ namespace DocSharp {
             LoadRecent(((ToolStripMenuItem)sender).Text);
         }
 
-        void LoadRecents() { // TODO: limit these to 10
+        void LoadRecents() {
             loadRecentToolStripMenuItem.DropDownItems.Clear();
             string[] recents = Properties.Settings.Default.Recents.Split('\n');
             for (int i = 0; i < recents.Length - 1; ++i) {
