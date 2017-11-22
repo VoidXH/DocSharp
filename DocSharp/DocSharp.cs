@@ -10,8 +10,16 @@ namespace DocSharp {
 
         void LoadRecent(string recent) {
             string newRecents = Properties.Settings.Default.Recents;
-            int recentPos = newRecents.IndexOf(recent);
-            Properties.Settings.Default.Recents = recent + '\n' + newRecents.Substring(0, recentPos) + newRecents.Substring(recentPos + recent.Length + 1);
+            if (newRecents.Length == 0)
+                Properties.Settings.Default.Recents = recent;
+            else {
+                int recentPos = newRecents.IndexOf(recent);
+                if (recentPos == -1)
+                    Properties.Settings.Default.Recents = recent + '\n' + newRecents;
+                else
+                    Properties.Settings.Default.Recents = recent + '\n' + newRecents.Substring(0, recentPos) +
+                        newRecents.Substring(recentPos + recent.Length + 1);
+            }
             Properties.Settings.Default.Save();
             LoadRecents();
             LoadFrom(recent);
@@ -218,7 +226,7 @@ namespace DocSharp {
             Utils.ClearFunctionBodies(global);
         }
 
-        void loadSourceToolStripMenuItem_Click(object sender, EventArgs e) {
+        void LoadSourceToolStripMenuItem_Click(object sender, EventArgs e) {
             if (folderDialog.ShowDialog() == DialogResult.OK) {
                 LoadFrom(folderDialog.SelectedPath);
                 if (Properties.Settings.Default.Recents.Contains(folderDialog.SelectedPath + '\n'))
@@ -234,7 +242,7 @@ namespace DocSharp {
             }
         }
 
-        private void sourceInfo_AfterSelect(object sender, TreeViewEventArgs e) {
+        private void SourceInfo_AfterSelect(object sender, TreeViewEventArgs e) {
             string info = string.Empty;
             TreeNode node = sourceInfo.SelectedNode;
             if (node != null && node.Tag != null) {
@@ -270,7 +278,7 @@ namespace DocSharp {
             }
         }
 
-        private void generateButton_Click(object sender, EventArgs e) {
+        private void GenerateButton_Click(object sender, EventArgs e) {
             if (import == null)
                 return;
 
@@ -291,7 +299,7 @@ namespace DocSharp {
             }
         }
 
-        private void aboutToolStripMenuItem_Click(object sender, EventArgs e) {
+        private void AboutToolStripMenuItem_Click(object sender, EventArgs e) {
             Process.Start("http://www.voidx.tk/");
         }
     }

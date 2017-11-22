@@ -87,7 +87,7 @@
             this.loadSourceToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.O)));
             this.loadSourceToolStripMenuItem.Size = new System.Drawing.Size(181, 22);
             this.loadSourceToolStripMenuItem.Text = "Load source";
-            this.loadSourceToolStripMenuItem.Click += new System.EventHandler(this.loadSourceToolStripMenuItem_Click);
+            this.loadSourceToolStripMenuItem.Click += new System.EventHandler(this.LoadSourceToolStripMenuItem_Click);
             // 
             // loadRecentToolStripMenuItem
             // 
@@ -108,7 +108,7 @@
             this.aboutToolStripMenuItem.Name = "aboutToolStripMenuItem";
             this.aboutToolStripMenuItem.Size = new System.Drawing.Size(107, 22);
             this.aboutToolStripMenuItem.Text = "About";
-            this.aboutToolStripMenuItem.Click += new System.EventHandler(this.aboutToolStripMenuItem_Click);
+            this.aboutToolStripMenuItem.Click += new System.EventHandler(this.AboutToolStripMenuItem_Click);
             // 
             // sourceInfo
             // 
@@ -118,7 +118,7 @@
             this.sourceInfo.Name = "sourceInfo";
             this.sourceInfo.Size = new System.Drawing.Size(534, 451);
             this.sourceInfo.TabIndex = 1;
-            this.sourceInfo.AfterSelect += new System.Windows.Forms.TreeViewEventHandler(this.sourceInfo_AfterSelect);
+            this.sourceInfo.AfterSelect += new System.Windows.Forms.TreeViewEventHandler(this.SourceInfo_AfterSelect);
             // 
             // mainSplit
             // 
@@ -275,7 +275,7 @@
             this.generateButton.TabIndex = 1137;
             this.generateButton.Text = "Generate";
             this.generateButton.UseVisualStyleBackColor = true;
-            this.generateButton.Click += new System.EventHandler(this.generateButton_Click);
+            this.generateButton.Click += new System.EventHandler(this.GenerateButton_Click);
             // 
             // settingsLabel
             // 
