@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Windows.Forms;
 
 namespace DocSharp {
@@ -300,7 +301,8 @@ namespace DocSharp {
         }
 
         private void AboutToolStripMenuItem_Click(object sender, EventArgs e) {
-            Process.Start("http://www.voidx.tk/");
+            MessageBox.Show("Doc# v" + FileVersionInfo.GetVersionInfo(Assembly.GetExecutingAssembly().Location).FileVersion + " by VoidX\n" +
+                "http://www.voidx.tk/", "About");
         }
     }
 }
