@@ -19,7 +19,7 @@ namespace DocSharp {
 
     static class Constants {
         public static readonly string[] modifiers = {
-            "abstract ", "async ", "const ", "event ", "extern ", "new ", "override ", "partial ",
+            "abstract ", "async ", "const ", "event ", "extern ", "new ", "override ",
             "readonly ", "sealed ", "static ", "unsafe ", "virtual ", "volatile "
         };
 

@@ -100,6 +100,7 @@ namespace DocSharp {
 
                             // Modifiers
                             string modifiers = string.Empty;
+                            Utils.RemoveModifier(ref cutout, "partial ");
                             Utils.MoveModifiers(ref cutout, ref modifiers, Constants.modifiers);
 
                             // Type
