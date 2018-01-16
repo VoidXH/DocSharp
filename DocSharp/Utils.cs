@@ -7,6 +7,11 @@ using System.Text.RegularExpressions;
 using System.Windows.Forms;
 
 namespace DocSharp {
+    public abstract class AbstractTestClass {
+        public abstract void AbstractTestFunction();
+        public void TestFunction() { }
+    }
+
     enum Kinds { Namespaces, Classes, Interfaces, Enums, Structs, Functions, Properties, Variables }
     enum Visibility { Default, Private, Protected, Internal, Public }
 

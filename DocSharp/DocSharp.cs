@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -7,6 +8,7 @@ using System.Windows.Forms;
 
 namespace DocSharp {
     public partial class DocSharp : Form {
+        Font italic;
         TreeNode import;
 
         void LoadRecent(string recent) {
@@ -42,6 +44,7 @@ namespace DocSharp {
 
         public DocSharp() {
             InitializeComponent();
+            italic = new Font(sourceInfo.Font, FontStyle.Italic);
             LoadRecents();
         }
 
@@ -148,8 +151,11 @@ namespace DocSharp {
                             // Node handling
                             TreeNode newNode = Utils.GetNodeByText(node, cutout);
                             if (!cutout.Equals(string.Empty)) {
-                                if (newNode == null)
+                                if (newNode == null) {
                                     Utils.MakeNodeName(newNode = node.Nodes.Add(cutout), vis);
+                                    if (modifiers.Contains("abstract"))
+                                        newNode.NodeFont = italic;
+                                }
                                 if (block) {
                                     node = newNode;
                                     if (kind == Kinds.Variables)
