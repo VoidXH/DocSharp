@@ -172,9 +172,22 @@ namespace DocSharp {
                 if (summary.Contains("</param>")) {
                     output.AppendLine("<h1>Parameters</h1>").AppendLine("<table>");
                     BlockStart();
+                    string[] definedParams = tag.Name.Substring(tag.Name.IndexOf('(') + 1).Split(',', ')');
                     string[] parameters;
-                    while ((parameters = Utils.RemoveParam(ref summary)) != null)
-                        BlockAppend(output, parameters[0], parameters[1]);
+                    while ((parameters = Utils.RemoveParam(ref summary)) != null) {
+                        string paramType = string.Empty;
+                        foreach (string definedParam in definedParams) {
+                            if (definedParam.EndsWith(parameters[0])) {
+                                string cut = definedParam.Substring(0, definedParam.IndexOf(parameters[0]));
+                                string trim = cut.Trim();
+                                if (cut.Length != trim.Length) { // if it doesn't end with a whitespace, it's another param that ends the same way
+                                    paramType = cut.Trim();
+                                    break;
+                                }
+                            }
+                        }
+                        BlockAppend(output, paramType + " <b>" + parameters[0] + "</b>", parameters[1]);
+                    }
                     output.AppendLine("</table>");
                 }
             }
