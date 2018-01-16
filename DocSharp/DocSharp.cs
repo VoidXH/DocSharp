@@ -37,7 +37,10 @@ namespace DocSharp {
             string[] recents = Properties.Settings.Default.Recents.Split('\n');
             for (int i = 0; i < recents.Length - 1; ++i) {
                 ToolStripItem recent = new ToolStripMenuItem(recents[i]);
-                recent.Click += LoadRecent;
+                if (Directory.Exists(recents[i]))
+                    recent.Click += LoadRecent;
+                else
+                    recent.Enabled = false;
                 loadRecentToolStripMenuItem.DropDownItems.Add(recent);
             }
         }
@@ -222,6 +225,8 @@ namespace DocSharp {
         }
 
         void LoadFrom(string path) {
+            if (!Directory.Exists(path))
+                return;
             string[] files = Directory.GetFiles(path, "*.cs", SearchOption.AllDirectories);
             sourceInfo.Nodes.Clear();
             TreeNode global = import = sourceInfo.Nodes.Add(path.Substring(path.LastIndexOf('\\') + 1));
