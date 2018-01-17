@@ -182,6 +182,7 @@
             this.defines.Size = new System.Drawing.Size(188, 20);
             this.defines.TabIndex = 1134;
             this.defines.Text = "RELEASE;TRACE";
+            this.defines.Visible = false;
             // 
             // definesLabel
             // 
@@ -191,6 +192,7 @@
             this.definesLabel.Size = new System.Drawing.Size(90, 13);
             this.definesLabel.TabIndex = 1139;
             this.definesLabel.Text = "Define constants:";
+            this.definesLabel.Visible = false;
             // 
             // phpFillers
             // 
