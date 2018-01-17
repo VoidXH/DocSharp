@@ -8,11 +8,6 @@ using System.Text.RegularExpressions;
 using System.Windows.Forms;
 
 namespace DocSharp {
-    public abstract class AbstractTestClass {
-        public abstract void AbstractTestFunction();
-        public void TestFunction() { }
-    }
-
     enum Kinds { Namespaces, Classes, Interfaces, Enums, Structs, Functions, Properties, Variables }
     enum Visibility { Default, Private, Protected, Internal, Public }
 
@@ -40,17 +35,6 @@ namespace DocSharp {
                     target = pass;
                 else
                     target += '\n' + pass;
-            }
-        }
-
-        public static void ClearFunctionBodies(TreeNode node) {
-            IEnumerator enumer = node.Nodes.GetEnumerator();
-            while (enumer.MoveNext()) {
-                TreeNode child = (TreeNode)enumer.Current;
-                if (child.Tag != null && (((ObjectInfo)child.Tag).Kind == Kinds.Functions || ((ObjectInfo)child.Tag).Kind == Kinds.Properties))
-                    child.Nodes.Clear();
-                else
-                    ClearFunctionBodies(child);
             }
         }
 
@@ -162,7 +146,7 @@ namespace DocSharp {
 
         public static string RemoveParamNames(string signature) {
             int paramStart, paramEnd;
-            if ((paramStart = signature.IndexOf('(') + 1) != 0 && (paramEnd = signature.IndexOf(')')) != -1) {
+            if ((paramStart = signature.IndexOf('(') + 1) != 0 && (paramEnd = signature.IndexOf(')', paramStart)) != -1) {
                 string parameters = signature.Substring(paramStart, paramEnd - paramStart);
                 string paramTypes = string.Empty;
                 string[] fullParams = parameters.Split(',');

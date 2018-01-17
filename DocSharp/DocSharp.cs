@@ -74,8 +74,8 @@ namespace DocSharp {
         }
 
         void ParseBlock(string code, TreeNode node) {
-            int codeLen = code.Length, lastEnding = 0, lastSlash = -2, parenthesis = 0;
-            bool commentLine = false, summaryLine = false, multilineString = false;
+            int codeLen = code.Length, lastEnding = 0, lastSlash = -2, parenthesis = 0, depth = 0, lastRemovableDepth = 0;
+            bool commentLine = false, summaryLine = false, multilineString = false, inRemovableBlock = false;
             string summary = string.Empty;
 
             for (int i = 0; i < codeLen; ++i) {
@@ -96,6 +96,16 @@ namespace DocSharp {
                     case '}':
                         if (!commentLine && parenthesis == 0) {
                             bool instruction = code[i] == ';', block = code[i] == '{', closing = code[i] == '}';
+                            if (block) ++depth;
+                            if (closing) {
+                                --depth;
+                                if (inRemovableBlock && depth < lastRemovableDepth) {
+                                    inRemovableBlock = false;
+                                    lastEnding = i;
+                                }
+                            }
+                            if (inRemovableBlock)
+                                continue;
                             string cutout = code.Substring(lastEnding, i - lastEnding).Trim();
                             lastEnding = i + 1;
 
@@ -196,8 +206,11 @@ namespace DocSharp {
                                 }
                                 if (block) {
                                     node = newNode;
-                                    if (kind == Kinds.Variables)
+                                    if (kind == Kinds.Variables) {
                                         kind = cutout.IndexOf('(') != -1 ? Kinds.Functions : Kinds.Properties;
+                                        lastRemovableDepth = depth;
+                                        inRemovableBlock = true;
+                                    }
                                 }
                                 if (newNode.Tag != null) {
                                     ObjectInfo tag = (ObjectInfo)newNode.Tag;
@@ -221,12 +234,14 @@ namespace DocSharp {
                         break;
                     case '(':
                     case '[':
-                        if (!commentLine)
+                    case '<':
+                        if (!inRemovableBlock && !commentLine)
                             ++parenthesis;
                         break;
                     case ')':
                     case ']':
-                        if (!commentLine)
+                    case '>':
+                        if (!inRemovableBlock && !commentLine)
                             --parenthesis;
                         break;
                     case '/':
@@ -271,7 +286,6 @@ namespace DocSharp {
                 ParseBlock(text, global);
             }
             sourceInfo.EndUpdate();
-            Utils.ClearFunctionBodies(global);
         }
 
         void LoadSourceToolStripMenuItem_Click(object sender, EventArgs e) {
