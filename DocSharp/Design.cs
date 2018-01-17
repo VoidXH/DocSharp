@@ -6,35 +6,28 @@ using System.Text;
 using System.Windows.Forms;
 
 namespace DocSharp {
-    public static class Design {
+    /// <summary>
+    /// Documentation exporter.
+    /// </summary>
+    public static partial class Design {
+        /// <summary>
+        /// Export the attributes for functions which have attributes.
+        /// </summary>
         public static bool ExportAttributes;
 
-        const string
-            titleMarker = "<!--title-->",
-            menuMarker = "<!--menu-->",
-            cssMarker = "<!--css-->",
-            elementMarker = "<!--elem-->",
-            linkMarker = "<!--link-->",
-            indentMarker = "<!--indent-->",
-            subelementMarker = "<!--sub-->",
-            contentMarker = "<!--content-->";
-
+        /// <summary>
+        /// File extensions (the content will be HTML anyway).
+        /// </summary>
         public static string Extension = "html";
-        const string stylesheet = "style.css";
-        const string mainTableClass = "mt";
-        const string menuTdClass = "t1";
-        const string firstColumnClass = "t2";
-        const string evenRowClass = "sr";
 
-        const string menuElement = @"
-<a href=""" + linkMarker + @"""><h2>" + indentMarker + elementMarker + @"</h2></a>";
-        const string menuSubelement = @"
-<a href=""" + linkMarker + @"""><h3>" + indentMarker + elementMarker + @"</h3></a>";
-
-        public static void GenerateDocumentation(TreeNode node, string path, int depth = 0) {
+        /// <summary>
+        /// Create documentation for a single tree node.
+        /// </summary>
+        /// <param name="node">Position in the program tree</param>
+        /// <param name="path">Path to the current tree node</param>
+        /// <param name="depth">Depth in the tree</param>
+        static void GenerateDocumentation(TreeNode node, string path, int depth) {
             Directory.CreateDirectory(path);
-            if (depth == 0)
-                File.WriteAllText(path + '\\' + stylesheet, style);
             GeneratePage(path + "\\index." + Extension, node, depth);
             foreach (TreeNode child in node.Nodes) {
                 if (child.Tag == null || ((ObjectInfo)child.Tag).Exportable) {
@@ -44,6 +37,16 @@ namespace DocSharp {
                         GenerateDocumentation(child, path + '\\' + child.Name, depth + 1);
                 }
             }
+        }
+
+        /// <summary>
+        /// Start the documentation generation.
+        /// </summary>
+        /// <param name="node">Program tree</param>
+        /// <param name="path">Path to the documentation</param>
+        public static void GenerateDocumentation(TreeNode node, string path) {
+            File.WriteAllText(path + '\\' + stylesheet, style);
+            GenerateDocumentation(node, path, 0);
         }
 
         static void BuildMenu(ref string output, TreeNode node, TreeNode child, bool locally, string path = "") {
@@ -204,67 +207,5 @@ namespace DocSharp {
                 .Replace(cssMarker, string.Concat(Enumerable.Repeat("..\\", depth)) + stylesheet);
             File.WriteAllText(path, baseBuild.Replace(contentMarker, Content(site)));
         }
-
-        const string baseBuild = @"<html>
-    <head>
-        <title>" + titleMarker + @"</title>
-        <link rel=""stylesheet"" href=""" + cssMarker + @""" type=""text/css"">
-      </head>
-    <body>
-        <table class=""" + mainTableClass + @""">
-            <tr>
-                <td class=""" + menuTdClass + @""">
-                    " + menuMarker + @"
-                </td>
-                <td>
-                    " + contentMarker + @"
-                </td>
-            </tr>
-        </table>
-    </body>
-</html>";
-
-        const string contentEntry = @"
-    <tr" + subelementMarker + @">
-        <td" + cssMarker + ">" + elementMarker + @"</td>
-        <td>" + contentMarker + @"</td>
-    </tr>";
-
-        const string style =
-@".mt { height: 100%; }
-.sr { background-color: #EEEEEE; }
-.t1 { width: 250px; }
-.t2 { width: 350px; }
-a:link { color: red; text-decoration: none; }
-a:visited { color: red; text-decoration: none; }
-a:active { color: red; text-decoration: underline; }
-a:hover { color: red; text-decoration: underline; }
-h1 {
-  font-size: 24px;
-  margin: 0;
-  margin-bottom: 6px;
-}
-h2 {
-  font-size: 16px;
-  margin: 0;
-}
-h3 {
-  font-size: 14px;
-  margin: 0;
-}
-html, body {
-  font-family: Verdana;
-  height: 100%;
-  margin: 0;
-}
-table {
-  border: none;
-  padding-bottom: 8px;
-  width: 100%;
-}            
-table tr td {
-  text-align: left;
-  vertical-align: top;
-}";
     }
 }

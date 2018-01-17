@@ -63,6 +63,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Design.cs" />
+    <Compile Include="Design.Page.cs" />
     <Compile Include="DocSharp.cs">
       <SubType>Form</SubType>
     </Compile>
