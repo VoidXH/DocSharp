@@ -180,12 +180,18 @@ namespace DocSharp {
                     while ((parameters = Utils.RemoveParam(ref summary)) != null) {
                         string paramType = string.Empty;
                         foreach (string definedParam in definedParams) {
-                            if (definedParam.EndsWith(parameters[0])) {
-                                string cut = definedParam.Substring(0, definedParam.IndexOf(parameters[0]));
-                                string trim = cut.Trim();
-                                if (cut.Length != trim.Length) { // if it doesn't end with a whitespace, it's another param that ends the same way
-                                    paramType = cut.Trim();
-                                    break;
+                            if (definedParam.Contains(parameters[0])) {
+                                string cut = definedParam;
+                                int eqPos;
+                                if ((eqPos = cut.IndexOf('=')) != -1) // remove default value
+                                    cut = cut.Substring(0, eqPos).Trim();
+                                if (cut.EndsWith(parameters[0])) {
+                                    cut = cut.Substring(0, cut.LastIndexOf(parameters[0]));
+                                    string trim = cut.Trim();
+                                    if (cut.Length != trim.Length) { // if it doesn't end with a whitespace, it's another param that ends the same way
+                                        paramType = cut.Trim();
+                                        break;
+                                    }
                                 }
                             }
                         }
