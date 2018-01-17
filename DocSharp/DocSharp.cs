@@ -156,13 +156,16 @@ namespace DocSharp {
 
                             // Type
                             string type = string.Empty;
-                            int spaceIndex = cutout.IndexOf(' ');
-                            if (spaceIndex != -1) {
-                                type = cutout.Substring(0, spaceIndex);
-                                if (type.IndexOf('(') != -1)
-                                    type = "Constructor";
-                                else
-                                    cutout = cutout.Substring(spaceIndex).TrimStart();
+                            int spaceIndex = -1;
+                            while ((spaceIndex = cutout.IndexOf(' ', spaceIndex + 1)) != -1) {
+                                if ((cutout.LastIndexOf('<', spaceIndex) == -1 || cutout.IndexOf('>', spaceIndex) == -1)) { // not in a template type
+                                    type = cutout.Substring(0, spaceIndex);
+                                    if (type.IndexOf('(') != -1)
+                                        type = "Constructor";
+                                    else
+                                        cutout = cutout.Substring(spaceIndex).TrimStart();
+                                    break;
+                                }
                             }
                             Kinds kind = Kinds.Variables;
                             if (type.Equals("class")) kind = Kinds.Classes;
