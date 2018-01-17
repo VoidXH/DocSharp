@@ -347,6 +347,7 @@
             this.infoLabel.AutoSize = true;
             this.infoLabel.Dock = System.Windows.Forms.DockStyle.Fill;
             this.infoLabel.Location = new System.Drawing.Point(12, 12);
+            this.infoLabel.MaximumSize = new System.Drawing.Size(276, 427);
             this.infoLabel.Name = "infoLabel";
             this.infoLabel.Size = new System.Drawing.Size(0, 13);
             this.infoLabel.TabIndex = 0;

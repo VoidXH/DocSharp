@@ -125,6 +125,12 @@ namespace DocSharp {
             source.TrimStart();
         }
 
+        public static string QuickSummary(string fullSummary) {
+            int summaryStart = fullSummary.IndexOf("<summary>") + 9;
+            return Regex.Replace(fullSummary.Substring(summaryStart, fullSummary.IndexOf("</summary>") - summaryStart)
+                .Replace("<see cref=\"", string.Empty).Replace("\"/>", ""), @"\r\n?|\n", " ");
+        }
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static string QuickSummary(string source, TreeNode node) {
             return RemoveTag(ref source, "summary", node);

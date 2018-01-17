@@ -301,6 +301,8 @@ namespace DocSharp {
                 Utils.AppendIfExists(ref info, "Type", tag.Type);
                 Utils.AppendIfExists(ref info, "Default value", tag.DefaultValue);
                 Utils.AppendIfExists(ref info, "Extends", tag.Extends);
+                if (tag.Summary.Length != 0)
+                    info += "\n\n" + Utils.QuickSummary(tag.Summary);
             }
             infoLabel.Text = info;
         }
