@@ -61,8 +61,9 @@ namespace DocSharp {
             foreach (TreeNode entry in node.Nodes) {
                 if (((ObjectInfo)entry.Tag).Exportable) {
                     string entryText = !path.Equals(string.Empty) && entry.Nodes.Count != 0 ? menuElement : menuSubelement;
-                    entryText = entryText.Replace(elementMarker, ((ObjectInfo)entry.Tag).Name).Replace(linkMarker, path + Utils.LocalLink(entry))
-                    .Replace(indentMarker, indentLength != 0 ? "&nbsp;" + new string(' ', indentLength - 1) : string.Empty);
+                    entryText = entryText.Replace(elementMarker,
+                        Utils.RemoveParamNames(((ObjectInfo)entry.Tag).Name)).Replace(linkMarker, path + Utils.LocalLink(entry))
+                        .Replace(indentMarker, indentLength != 0 ? "&nbsp;" + new string(' ', indentLength - 1) : string.Empty);
                     if (appendToFront) {
                         if (entry == child)
                             appendToFront = false;

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.IO;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -151,6 +152,27 @@ namespace DocSharp {
             };
             source = source.Substring(0, startPos).TrimEnd() + source.Substring(endPos + 8).TrimStart();
             return output;
+        }
+
+        public static string RemoveParamNames(string signature) {
+            int paramStart, paramEnd;
+            if ((paramStart = signature.IndexOf('(') + 1) != 0 && (paramEnd = signature.IndexOf(')')) != -1) {
+                string parameters = signature.Substring(paramStart, paramEnd - paramStart);
+                string paramTypes = string.Empty;
+                string[] fullParams = parameters.Split(',');
+                int paramCount = fullParams.Length;
+                for (int param = 0; param < paramCount; ++param) {
+                    fullParams[param] = fullParams[param].Trim();
+                    if (fullParams[param].Contains('='))
+                        fullParams[param] = fullParams[param].Substring(0, fullParams[param].IndexOf('=')).TrimEnd();
+                    paramTypes += (fullParams[param].Contains(' ') ? fullParams[param].Substring(0, fullParams[param].LastIndexOf(' ')) :
+                        fullParams[param]) + ", ";
+                }
+                if (paramTypes.Length != 0)
+                    signature = signature.Substring(0, paramStart) + paramTypes.Substring(0, paramTypes.Length - 2)
+                        + signature.Substring(paramEnd);
+            }
+            return signature;
         }
 
         public static string RemoveTag(ref string source, string tag, TreeNode node) {
