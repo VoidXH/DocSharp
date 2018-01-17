@@ -49,6 +49,28 @@ namespace DocSharp {
             InitializeComponent();
             italic = new Font(sourceInfo.Font, FontStyle.Italic);
             LoadRecents();
+            expandEnums.Checked = Properties.Settings.Default.ExpandEnums;
+            expandStructs.Checked = Properties.Settings.Default.ExpandStructs;
+            exportAttributes.Checked = Properties.Settings.Default.ExportAttributes;
+            extension.Text = Properties.Settings.Default.FileExtension;
+            phpFillers.Checked = Properties.Settings.Default.PhpFillers;
+            exportInternal.Checked = Properties.Settings.Default.VisibilityInternal;
+            exportPrivate.Checked = Properties.Settings.Default.VisibilityPrivate;
+            exportProtected.Checked = Properties.Settings.Default.VisibilityProtected;
+            exportPublic.Checked = Properties.Settings.Default.VisibilityPublic;
+        }
+
+        private void DocSharp_FormClosed(object sender, FormClosedEventArgs e) {
+            Properties.Settings.Default.ExpandEnums = expandEnums.Checked;
+            Properties.Settings.Default.ExpandStructs = expandStructs.Checked;
+            Properties.Settings.Default.ExportAttributes = exportAttributes.Checked;
+            Properties.Settings.Default.FileExtension = extension.Text;
+            Properties.Settings.Default.PhpFillers = phpFillers.Checked;
+            Properties.Settings.Default.VisibilityInternal = exportInternal.Checked;
+            Properties.Settings.Default.VisibilityPrivate = exportPrivate.Checked;
+            Properties.Settings.Default.VisibilityProtected = exportProtected.Checked;
+            Properties.Settings.Default.VisibilityPublic = exportPublic.Checked;
+            Properties.Settings.Default.Save();
         }
 
         void ParseBlock(string code, TreeNode node) {
@@ -168,7 +190,7 @@ namespace DocSharp {
                             TreeNode newNode = Utils.GetNodeByText(node, cutout);
                             if (!cutout.Equals(string.Empty)) {
                                 if (newNode == null) {
-                                    Utils.MakeNodeName(newNode = node.Nodes.Add(cutout), vis);
+                                    Utils.MakeNodeName(newNode = node.Nodes.Add(Utils.RemoveParamNames(cutout)), vis);
                                     if (modifiers.Contains("abstract"))
                                         newNode.NodeFont = italic;
                                 }

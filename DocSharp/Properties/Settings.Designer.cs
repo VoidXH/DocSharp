@@ -34,5 +34,113 @@ namespace DocSharp.Properties {
                 this["Recents"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool VisibilityPublic {
+            get {
+                return ((bool)(this["VisibilityPublic"]));
+            }
+            set {
+                this["VisibilityPublic"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool VisibilityProtected {
+            get {
+                return ((bool)(this["VisibilityProtected"]));
+            }
+            set {
+                this["VisibilityProtected"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool VisibilityInternal {
+            get {
+                return ((bool)(this["VisibilityInternal"]));
+            }
+            set {
+                this["VisibilityInternal"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool VisibilityPrivate {
+            get {
+                return ((bool)(this["VisibilityPrivate"]));
+            }
+            set {
+                this["VisibilityPrivate"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool ExpandEnums {
+            get {
+                return ((bool)(this["ExpandEnums"]));
+            }
+            set {
+                this["ExpandEnums"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool ExpandStructs {
+            get {
+                return ((bool)(this["ExpandStructs"]));
+            }
+            set {
+                this["ExpandStructs"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool ExportAttributes {
+            get {
+                return ((bool)(this["ExportAttributes"]));
+            }
+            set {
+                this["ExportAttributes"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("html")]
+        public string FileExtension {
+            get {
+                return ((string)(this["FileExtension"]));
+            }
+            set {
+                this["FileExtension"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool PhpFillers {
+            get {
+                return ((bool)(this["PhpFillers"]));
+            }
+            set {
+                this["PhpFillers"] = value;
+            }
+        }
     }
 }

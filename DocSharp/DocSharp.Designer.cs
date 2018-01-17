@@ -361,6 +361,7 @@
             this.MainMenuStrip = this.menu;
             this.Name = "DocSharp";
             this.Text = "Doc#";
+            this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.DocSharp_FormClosed);
             this.menu.ResumeLayout(false);
             this.menu.PerformLayout();
             this.mainSplit.Panel1.ResumeLayout(false);
