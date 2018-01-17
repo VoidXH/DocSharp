@@ -101,10 +101,13 @@ namespace DocSharp {
 
                             // Default value
                             string defaultValue = string.Empty;
-                            int eqPos = cutout.LastIndexOf('=');
-                            if (eqPos != -1 && (cutout.LastIndexOf('(', eqPos) == -1 || cutout.IndexOf(')', eqPos) == -1)) { // not a parameter
-                                defaultValue = cutout.Substring(eqPos + 1).TrimStart();
-                                cutout = cutout.Substring(0, eqPos).TrimEnd();
+                            int eqPos = -1;
+                            while ((eqPos = cutout.IndexOf('=', eqPos + 1)) != -1) {
+                                if ((cutout.LastIndexOf('(', eqPos) == -1 || cutout.IndexOf(')', eqPos) == -1)) { // not a parameter
+                                    defaultValue = cutout.Substring(eqPos + 1).TrimStart();
+                                    cutout = cutout.Substring(0, eqPos).TrimEnd();
+                                    break;
+                                }
                             }
 
                             // Visibility
