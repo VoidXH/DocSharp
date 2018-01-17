@@ -53,10 +53,20 @@ namespace DocSharp {
 
         void ParseBlock(string code, TreeNode node) {
             int codeLen = code.Length, lastEnding = 0, lastSlash = -2, parenthesis = 0;
-            bool commentLine = false, summaryLine = false;
+            bool commentLine = false, summaryLine = false, multilineString = false;
             string summary = string.Empty;
 
             for (int i = 0; i < codeLen; ++i) {
+                // Skip multiline strings
+                if (i != 0 && code[i] == '"' && code[i - 1] == '@')
+                    multilineString = true;
+                else if (multilineString) {
+                    if (code[i] == '"' && code[i - 1] != '\\')
+                        multilineString = false;
+                    else
+                        continue;
+                }
+                // Actual parser
                 switch (code[i]) {
                     case ',':
                     case ';':
