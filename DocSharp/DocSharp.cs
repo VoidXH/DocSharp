@@ -8,6 +8,7 @@ using System.Windows.Forms;
 
 namespace DocSharp {
     public partial class DocSharp : Form {
+        string lastLoaded = string.Empty;
         Font italic;
         TreeNode import;
 
@@ -73,10 +74,16 @@ namespace DocSharp {
             Properties.Settings.Default.Save();
         }
 
-        void ParseBlock(string code, TreeNode node) {
+        void ParseBlock(string code, TreeNode node, string defines = "") {
             int codeLen = code.Length, lastEnding = 0, lastSlash = -2, parenthesis = 0, depth = 0, lastRemovableDepth = 0;
-            bool commentLine = false, summaryLine = false, multilineString = false, inRemovableBlock = false;
+            bool commentLine = false, summaryLine = false, multilineString = false, inRemovableBlock = false, preprocessorLine = false;
             string summary = string.Empty;
+
+            // Parse defines
+            string[] defineConstants = defines.Split(';');
+            int defineCount = defineConstants.Length;
+            for (int i = 0; i < defineCount; ++i)
+                defineConstants[i] = defineConstants[i].Trim();
 
             for (int i = 0; i < codeLen; ++i) {
                 // Skip multiline strings
@@ -259,9 +266,13 @@ namespace DocSharp {
                         }
                         break;
                     case '#':
-                        commentLine = true;
+                        commentLine = preprocessorLine = true;
                         break;
                     case '\n':
+                        if (preprocessorLine) {
+                            // TODO
+                            preprocessorLine = false;
+                        }
                         if (commentLine) {
                             commentLine = false;
                             lastEnding = i + 1;
@@ -277,18 +288,23 @@ namespace DocSharp {
             }
         }
 
-        void LoadFrom(string path) {
+        void LoadFrom(string path, string defines = "") {
             if (!Directory.Exists(path))
                 return;
+            lastLoaded = path;
             string[] files = Directory.GetFiles(path, "*.cs", SearchOption.AllDirectories);
             sourceInfo.Nodes.Clear();
             TreeNode global = import = sourceInfo.Nodes.Add(path.Substring(path.LastIndexOf('\\') + 1));
             sourceInfo.BeginUpdate();
             foreach (string file in files) {
                 string text = File.ReadAllText(file);
-                ParseBlock(text, global);
+                ParseBlock(text, global, defines);
             }
             sourceInfo.EndUpdate();
+        }
+
+        private void ReloadConstants_Click(object sender, EventArgs e) {
+            LoadFrom(lastLoaded, defines.Text);
         }
 
         void LoadSourceToolStripMenuItem_Click(object sender, EventArgs e) {

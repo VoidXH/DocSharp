@@ -33,6 +33,7 @@
             this.sourceInfo = new System.Windows.Forms.TreeView();
             this.mainSplit = new System.Windows.Forms.SplitContainer();
             this.leftSplit = new System.Windows.Forms.SplitContainer();
+            this.reloadConstants = new System.Windows.Forms.Button();
             this.defines = new System.Windows.Forms.TextBox();
             this.definesLabel = new System.Windows.Forms.Label();
             this.phpFillers = new System.Windows.Forms.CheckBox();
@@ -68,7 +69,7 @@
             this.helpToolStripMenuItem});
             this.menu.Location = new System.Drawing.Point(0, 0);
             this.menu.Name = "menu";
-            this.menu.Size = new System.Drawing.Size(838, 24);
+            this.menu.Size = new System.Drawing.Size(824, 24);
             this.menu.TabIndex = 0;
             this.menu.Text = "menuStrip1";
             // 
@@ -116,7 +117,7 @@
             this.sourceInfo.Font = new System.Drawing.Font("Lucida Sans Unicode", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(238)));
             this.sourceInfo.Location = new System.Drawing.Point(0, 0);
             this.sourceInfo.Name = "sourceInfo";
-            this.sourceInfo.Size = new System.Drawing.Size(534, 451);
+            this.sourceInfo.Size = new System.Drawing.Size(520, 437);
             this.sourceInfo.TabIndex = 1;
             this.sourceInfo.AfterSelect += new System.Windows.Forms.TreeViewEventHandler(this.SourceInfo_AfterSelect);
             // 
@@ -135,7 +136,7 @@
             // mainSplit.Panel2
             // 
             this.mainSplit.Panel2.Controls.Add(this.sourceInfo);
-            this.mainSplit.Size = new System.Drawing.Size(838, 451);
+            this.mainSplit.Size = new System.Drawing.Size(824, 437);
             this.mainSplit.SplitterDistance = 300;
             this.mainSplit.TabIndex = 2;
             // 
@@ -150,6 +151,7 @@
             // 
             // leftSplit.Panel1
             // 
+            this.leftSplit.Panel1.Controls.Add(this.reloadConstants);
             this.leftSplit.Panel1.Controls.Add(this.defines);
             this.leftSplit.Panel1.Controls.Add(this.definesLabel);
             this.leftSplit.Panel1.Controls.Add(this.phpFillers);
@@ -171,15 +173,26 @@
             // 
             this.leftSplit.Panel2.Controls.Add(this.infoLabel);
             this.leftSplit.Panel2.Padding = new System.Windows.Forms.Padding(12);
-            this.leftSplit.Size = new System.Drawing.Size(300, 451);
+            this.leftSplit.Size = new System.Drawing.Size(300, 437);
             this.leftSplit.SplitterDistance = 227;
             this.leftSplit.TabIndex = 0;
+            // 
+            // reloadConstants
+            // 
+            this.reloadConstants.Location = new System.Drawing.Point(235, 146);
+            this.reloadConstants.Name = "reloadConstants";
+            this.reloadConstants.Size = new System.Drawing.Size(62, 23);
+            this.reloadConstants.TabIndex = 1135;
+            this.reloadConstants.Text = "Reload";
+            this.reloadConstants.UseVisualStyleBackColor = true;
+            this.reloadConstants.Visible = false;
+            this.reloadConstants.Click += new System.EventHandler(this.ReloadConstants_Click);
             // 
             // defines
             // 
             this.defines.Location = new System.Drawing.Point(108, 148);
             this.defines.Name = "defines";
-            this.defines.Size = new System.Drawing.Size(188, 20);
+            this.defines.Size = new System.Drawing.Size(121, 20);
             this.defines.TabIndex = 1134;
             this.defines.Text = "RELEASE;TRACE";
             this.defines.Visible = false;
@@ -200,7 +213,7 @@
             this.phpFillers.Location = new System.Drawing.Point(15, 201);
             this.phpFillers.Name = "phpFillers";
             this.phpFillers.Size = new System.Drawing.Size(98, 17);
-            this.phpFillers.TabIndex = 1136;
+            this.phpFillers.TabIndex = 1137;
             this.phpFillers.Text = "index.php fillers";
             this.phpFillers.UseVisualStyleBackColor = true;
             // 
@@ -214,7 +227,7 @@
             this.extension.Location = new System.Drawing.Point(108, 174);
             this.extension.Name = "extension";
             this.extension.Size = new System.Drawing.Size(121, 21);
-            this.extension.TabIndex = 1135;
+            this.extension.TabIndex = 1136;
             this.extension.Text = "html";
             // 
             // extensionLabel
@@ -274,7 +287,7 @@
             this.generateButton.Location = new System.Drawing.Point(197, 201);
             this.generateButton.Name = "generateButton";
             this.generateButton.Size = new System.Drawing.Size(100, 23);
-            this.generateButton.TabIndex = 1137;
+            this.generateButton.TabIndex = 1138;
             this.generateButton.Text = "Generate";
             this.generateButton.UseVisualStyleBackColor = true;
             this.generateButton.Click += new System.EventHandler(this.GenerateButton_Click);
@@ -356,7 +369,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(838, 475);
+            this.ClientSize = new System.Drawing.Size(824, 461);
             this.Controls.Add(this.mainSplit);
             this.Controls.Add(this.menu);
             this.MainMenuStrip = this.menu;
@@ -409,6 +422,7 @@
         private System.Windows.Forms.ToolStripMenuItem aboutToolStripMenuItem;
         private System.Windows.Forms.Label definesLabel;
         private System.Windows.Forms.TextBox defines;
+        private System.Windows.Forms.Button reloadConstants;
     }
 }
 
