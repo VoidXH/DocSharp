@@ -39,7 +39,9 @@ namespace DocSharp {
         }
 
         public static void FillWithPHP(DirectoryInfo target) {
-            File.Create(target.FullName + "\\index.php").Close();
+            string targetName = target.FullName + "\\index.php";
+            if (!File.Exists(targetName))
+                File.Create(targetName).Close();
             DirectoryInfo[] subdirs = target.GetDirectories();
             int subdirCount = subdirs.Length;
             for (int i = 0; i < subdirCount; ++i)
