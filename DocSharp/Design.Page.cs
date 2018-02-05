@@ -28,12 +28,12 @@
         /// Parent menu element.
         /// </summary>
         const string menuElement = @"
-<a href=""" + linkMarker + @"""><h2>" + indentMarker + elementMarker + @"</h2></a>";
+<h2>" + indentMarker + "<a href=\"" + linkMarker + "\">" + elementMarker + "</a></h2>";
         /// <summary>
         /// Menu element on the same level as the opened module.
         /// </summary>
         const string menuSubelement = @"
-<a href=""" + linkMarker + @"""><h3>" + indentMarker + elementMarker + @"</h3></a>";
+<h3>" + indentMarker + "<a href=\"" + linkMarker + "\">" + elementMarker + "</a></h3>";
 
         /// <summary>
         /// Boilerplate of a page.
