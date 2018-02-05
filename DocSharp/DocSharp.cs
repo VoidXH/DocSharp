@@ -177,7 +177,7 @@ namespace DocSharp {
                             string type = string.Empty;
                             int spaceIndex = -1;
                             while ((spaceIndex = cutout.IndexOf(' ', spaceIndex + 1)) != -1) {
-                                if ((spaceIndex == -1 || !cutout.Substring(0, spaceIndex).Equals("delegate")) && // not a delegate
+                                if ((spaceIndex == -1 || !cutout.Substring(0, spaceIndex).Equals("delegate")) && // not just the delegate word in case of a delegate
                                     (cutout.LastIndexOf('<', spaceIndex) == -1 || cutout.IndexOf('>', spaceIndex) == -1)) { // not in a template type
                                     type = cutout.Substring(0, spaceIndex);
                                     if (type.IndexOf('(') != -1)
