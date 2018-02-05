@@ -76,7 +76,7 @@ namespace DocSharp {
 
         void ParseBlock(string code, TreeNode node, string defines = "") {
             int codeLen = code.Length, lastEnding = 0, lastSlash = -2, parenthesis = 0, depth = 0, lastRemovableDepth = 0, preprocessorLineStart = 0;
-            bool commentLine = false, summaryLine = false, multilineString = false, inRemovableBlock = false, preprocessorLine = false;
+            bool commentLine = false, inRemovableBlock = false, inString = false, preprocessorLine = false, summaryLine = false;
             string summary = string.Empty;
 
             // Parse defines
@@ -86,14 +86,22 @@ namespace DocSharp {
                 defineConstants[i] = defineConstants[i].Trim();
 
             for (int i = 0; i < codeLen; ++i) {
-                // Skip multiline strings
-                if (i != 0 && code[i] == '"' && code[i - 1] == '@')
-                    multilineString = true;
-                else if (multilineString) {
-                    if (code[i] == '"' && code[i - 1] != '\\')
-                        multilineString = false;
-                    else
-                        continue;
+                if (i != 0 && code[i - 1] != '\\') {
+                    // Skip multiline strings
+                    if (!inString && code[i] == '"')
+                        inString = true;
+                    else if (inString) {
+                        if (code[i] == '"')
+                            inString = false;
+                        else
+                            continue;
+                    // Skip characters
+                    } else if (code[i] == '\'') {
+                        if (code[i + 3] == '\'')
+                            i += 4;
+                        if (code[i + 2] == '\'')
+                            i += 3;
+                    }
                 }
                 // Actual parser
                 switch (code[i]) {
@@ -118,8 +126,12 @@ namespace DocSharp {
 
                             // Remove multiline comments
                             int commentBlockStart;
-                            while ((commentBlockStart = cutout.IndexOf("/*")) != -1)
-                                cutout = cutout.Substring(0, commentBlockStart) + cutout.Substring(cutout.IndexOf("*/", commentBlockStart + 2) + 2);
+                            while ((commentBlockStart = cutout.IndexOf("/*")) != -1) {
+                                int commentEnd = cutout.IndexOf("*/", commentBlockStart + 2) + 2;
+                                if (commentEnd == 1)
+                                    break;
+                                cutout = cutout.Substring(0, commentBlockStart) + cutout.Substring(commentEnd);
+                            }
 
                             if (cutout.StartsWith("using"))
                                 break;
