@@ -75,7 +75,7 @@ namespace DocSharp {
         }
 
         void ParseBlock(string code, TreeNode node, string defines = "") {
-            int codeLen = code.Length, lastEnding = 0, lastSlash = -2, parenthesis = 0, depth = 0, lastRemovableDepth = 0;
+            int codeLen = code.Length, lastEnding = 0, lastSlash = -2, parenthesis = 0, depth = 0, lastRemovableDepth = 0, preprocessorLineStart = 0;
             bool commentLine = false, summaryLine = false, multilineString = false, inRemovableBlock = false, preprocessorLine = false;
             string summary = string.Empty;
 
@@ -267,9 +267,11 @@ namespace DocSharp {
                         break;
                     case '#':
                         commentLine = preprocessorLine = true;
+                        preprocessorLineStart = i;
                         break;
                     case '\n':
                         if (preprocessorLine) {
+                            string line = code.Substring(preprocessorLineStart, i - preprocessorLineStart);
                             // TODO
                             preprocessorLine = false;
                         }
