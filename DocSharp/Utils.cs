@@ -71,6 +71,9 @@ namespace DocSharp {
             if (node.Name.Equals(string.Empty)) {
                 int parenthesis = node.Text.IndexOf('(');
                 string nameOnly = parenthesis == -1 ? node.Text : node.Text.Substring(0, parenthesis);
+                int angleBracket = nameOnly.IndexOf('<');
+                if (angleBracket != -1)
+                    nameOnly = nameOnly.Substring(0, angleBracket);
                 int tryCount = 0;
                 while (true) {
                     string tryWith = nameOnly + (tryCount++ == 0 ? string.Empty : (tryCount).ToString());
