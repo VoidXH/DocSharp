@@ -33,9 +33,9 @@
             this.sourceInfo = new System.Windows.Forms.TreeView();
             this.mainSplit = new System.Windows.Forms.SplitContainer();
             this.leftSplit = new System.Windows.Forms.SplitContainer();
+            this.currentDefines = new System.Windows.Forms.Label();
             this.reloadConstants = new System.Windows.Forms.Button();
             this.defines = new System.Windows.Forms.TextBox();
-            this.definesLabel = new System.Windows.Forms.Label();
             this.phpFillers = new System.Windows.Forms.CheckBox();
             this.extension = new System.Windows.Forms.ComboBox();
             this.extensionLabel = new System.Windows.Forms.Label();
@@ -51,6 +51,7 @@
             this.exportInternal = new System.Windows.Forms.CheckBox();
             this.exportPublic = new System.Windows.Forms.CheckBox();
             this.infoLabel = new System.Windows.Forms.Label();
+            this.definesBox = new System.Windows.Forms.GroupBox();
             this.menu.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.mainSplit)).BeginInit();
             this.mainSplit.Panel1.SuspendLayout();
@@ -60,6 +61,7 @@
             this.leftSplit.Panel1.SuspendLayout();
             this.leftSplit.Panel2.SuspendLayout();
             this.leftSplit.SuspendLayout();
+            this.definesBox.SuspendLayout();
             this.SuspendLayout();
             // 
             // menu
@@ -117,7 +119,7 @@
             this.sourceInfo.Font = new System.Drawing.Font("Lucida Sans Unicode", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(238)));
             this.sourceInfo.Location = new System.Drawing.Point(0, 0);
             this.sourceInfo.Name = "sourceInfo";
-            this.sourceInfo.Size = new System.Drawing.Size(520, 437);
+            this.sourceInfo.Size = new System.Drawing.Size(520, 477);
             this.sourceInfo.TabIndex = 1;
             this.sourceInfo.AfterSelect += new System.Windows.Forms.TreeViewEventHandler(this.SourceInfo_AfterSelect);
             // 
@@ -136,7 +138,7 @@
             // mainSplit.Panel2
             // 
             this.mainSplit.Panel2.Controls.Add(this.sourceInfo);
-            this.mainSplit.Size = new System.Drawing.Size(824, 437);
+            this.mainSplit.Size = new System.Drawing.Size(824, 477);
             this.mainSplit.SplitterDistance = 300;
             this.mainSplit.TabIndex = 2;
             // 
@@ -151,17 +153,15 @@
             // 
             // leftSplit.Panel1
             // 
-            this.leftSplit.Panel1.Controls.Add(this.reloadConstants);
-            this.leftSplit.Panel1.Controls.Add(this.defines);
-            this.leftSplit.Panel1.Controls.Add(this.definesLabel);
-            this.leftSplit.Panel1.Controls.Add(this.phpFillers);
-            this.leftSplit.Panel1.Controls.Add(this.extension);
+            this.leftSplit.Panel1.Controls.Add(this.definesBox);
             this.leftSplit.Panel1.Controls.Add(this.extensionLabel);
+            this.leftSplit.Panel1.Controls.Add(this.phpFillers);
             this.leftSplit.Panel1.Controls.Add(this.exportAttributes);
+            this.leftSplit.Panel1.Controls.Add(this.generateButton);
             this.leftSplit.Panel1.Controls.Add(this.expandStructs);
+            this.leftSplit.Panel1.Controls.Add(this.extension);
             this.leftSplit.Panel1.Controls.Add(this.structureLabel);
             this.leftSplit.Panel1.Controls.Add(this.expandEnums);
-            this.leftSplit.Panel1.Controls.Add(this.generateButton);
             this.leftSplit.Panel1.Controls.Add(this.settingsLabel);
             this.leftSplit.Panel1.Controls.Add(this.visibilityLabel);
             this.leftSplit.Panel1.Controls.Add(this.exportPrivate);
@@ -173,44 +173,40 @@
             // 
             this.leftSplit.Panel2.Controls.Add(this.infoLabel);
             this.leftSplit.Panel2.Padding = new System.Windows.Forms.Padding(12);
-            this.leftSplit.Size = new System.Drawing.Size(300, 437);
-            this.leftSplit.SplitterDistance = 227;
+            this.leftSplit.Size = new System.Drawing.Size(300, 477);
+            this.leftSplit.SplitterDistance = 285;
             this.leftSplit.TabIndex = 0;
+            // 
+            // currentDefines
+            // 
+            this.currentDefines.Location = new System.Drawing.Point(9, 50);
+            this.currentDefines.Name = "currentDefines";
+            this.currentDefines.Size = new System.Drawing.Size(211, 18);
+            this.currentDefines.TabIndex = 1140;
+            this.currentDefines.Text = "Code loaded with: -";
             // 
             // reloadConstants
             // 
-            this.reloadConstants.Location = new System.Drawing.Point(235, 146);
+            this.reloadConstants.Location = new System.Drawing.Point(226, 45);
             this.reloadConstants.Name = "reloadConstants";
             this.reloadConstants.Size = new System.Drawing.Size(62, 23);
-            this.reloadConstants.TabIndex = 1135;
+            this.reloadConstants.TabIndex = 2;
             this.reloadConstants.Text = "Reload";
             this.reloadConstants.UseVisualStyleBackColor = true;
-            this.reloadConstants.Visible = false;
             this.reloadConstants.Click += new System.EventHandler(this.ReloadConstants_Click);
             // 
             // defines
             // 
-            this.defines.Location = new System.Drawing.Point(108, 148);
+            this.defines.Location = new System.Drawing.Point(6, 19);
             this.defines.Name = "defines";
-            this.defines.Size = new System.Drawing.Size(121, 20);
-            this.defines.TabIndex = 1134;
-            this.defines.Text = "RELEASE;TRACE";
-            this.defines.Visible = false;
-            // 
-            // definesLabel
-            // 
-            this.definesLabel.AutoSize = true;
-            this.definesLabel.Location = new System.Drawing.Point(12, 151);
-            this.definesLabel.Name = "definesLabel";
-            this.definesLabel.Size = new System.Drawing.Size(90, 13);
-            this.definesLabel.TabIndex = 1139;
-            this.definesLabel.Text = "Define constants:";
-            this.definesLabel.Visible = false;
+            this.defines.Size = new System.Drawing.Size(282, 20);
+            this.defines.TabIndex = 1;
+            this.defines.Text = "RELEASE; MASTER";
             // 
             // phpFillers
             // 
             this.phpFillers.AutoSize = true;
-            this.phpFillers.Location = new System.Drawing.Point(15, 201);
+            this.phpFillers.Location = new System.Drawing.Point(15, 259);
             this.phpFillers.Name = "phpFillers";
             this.phpFillers.Size = new System.Drawing.Size(98, 17);
             this.phpFillers.TabIndex = 1137;
@@ -224,7 +220,7 @@
             "html",
             "htm",
             "php"});
-            this.extension.Location = new System.Drawing.Point(108, 174);
+            this.extension.Location = new System.Drawing.Point(108, 232);
             this.extension.Name = "extension";
             this.extension.Size = new System.Drawing.Size(121, 21);
             this.extension.TabIndex = 1136;
@@ -233,7 +229,7 @@
             // extensionLabel
             // 
             this.extensionLabel.AutoSize = true;
-            this.extensionLabel.Location = new System.Drawing.Point(12, 177);
+            this.extensionLabel.Location = new System.Drawing.Point(12, 235);
             this.extensionLabel.Name = "extensionLabel";
             this.extensionLabel.Size = new System.Drawing.Size(74, 13);
             this.extensionLabel.TabIndex = 11;
@@ -284,7 +280,7 @@
             // 
             // generateButton
             // 
-            this.generateButton.Location = new System.Drawing.Point(197, 201);
+            this.generateButton.Location = new System.Drawing.Point(197, 259);
             this.generateButton.Name = "generateButton";
             this.generateButton.Size = new System.Drawing.Size(100, 23);
             this.generateButton.TabIndex = 1138;
@@ -365,11 +361,23 @@
             this.infoLabel.Size = new System.Drawing.Size(0, 13);
             this.infoLabel.TabIndex = 0;
             // 
+            // definesBox
+            // 
+            this.definesBox.Controls.Add(this.defines);
+            this.definesBox.Controls.Add(this.currentDefines);
+            this.definesBox.Controls.Add(this.reloadConstants);
+            this.definesBox.Location = new System.Drawing.Point(3, 148);
+            this.definesBox.Name = "definesBox";
+            this.definesBox.Size = new System.Drawing.Size(294, 74);
+            this.definesBox.TabIndex = 1134;
+            this.definesBox.TabStop = false;
+            this.definesBox.Text = "Define constants";
+            // 
             // DocSharp
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(824, 461);
+            this.ClientSize = new System.Drawing.Size(824, 501);
             this.Controls.Add(this.mainSplit);
             this.Controls.Add(this.menu);
             this.MainMenuStrip = this.menu;
@@ -388,6 +396,8 @@
             this.leftSplit.Panel2.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.leftSplit)).EndInit();
             this.leftSplit.ResumeLayout(false);
+            this.definesBox.ResumeLayout(false);
+            this.definesBox.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -420,9 +430,10 @@
         private System.Windows.Forms.CheckBox phpFillers;
         private System.Windows.Forms.ToolStripMenuItem helpToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem aboutToolStripMenuItem;
-        private System.Windows.Forms.Label definesLabel;
         private System.Windows.Forms.TextBox defines;
         private System.Windows.Forms.Button reloadConstants;
+        private System.Windows.Forms.Label currentDefines;
+        private System.Windows.Forms.GroupBox definesBox;
     }
 }
 

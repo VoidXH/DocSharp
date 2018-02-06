@@ -26,7 +26,7 @@ namespace DocSharp {
             }
             Properties.Settings.Default.Save();
             LoadRecents();
-            LoadFrom(recent);
+            LoadFrom(recent, defines.Text);
         }
 
         void LoadRecent(object sender, EventArgs e) {
@@ -54,6 +54,7 @@ namespace DocSharp {
             expandStructs.Checked = Properties.Settings.Default.ExpandStructs;
             exportAttributes.Checked = Properties.Settings.Default.ExportAttributes;
             extension.Text = Properties.Settings.Default.FileExtension;
+            defines.Text = Properties.Settings.Default.DefineConstants;
             phpFillers.Checked = Properties.Settings.Default.PhpFillers;
             exportInternal.Checked = Properties.Settings.Default.VisibilityInternal;
             exportPrivate.Checked = Properties.Settings.Default.VisibilityPrivate;
@@ -66,6 +67,7 @@ namespace DocSharp {
             Properties.Settings.Default.ExpandStructs = expandStructs.Checked;
             Properties.Settings.Default.ExportAttributes = exportAttributes.Checked;
             Properties.Settings.Default.FileExtension = extension.Text;
+            Properties.Settings.Default.DefineConstants = defines.Text;
             Properties.Settings.Default.PhpFillers = phpFillers.Checked;
             Properties.Settings.Default.VisibilityInternal = exportInternal.Checked;
             Properties.Settings.Default.VisibilityPrivate = exportPrivate.Checked;
@@ -74,9 +76,28 @@ namespace DocSharp {
             Properties.Settings.Default.Save();
         }
 
-        void ParseBlock(string code, TreeNode node, string defines = "") {
-            int codeLen = code.Length, lastEnding = 0, lastSlash = -2, parenthesis = 0, depth = 0, lastRemovableDepth = 0, preprocessorLineStart = 0;
-            bool commentLine = false, inRemovableBlock = false, inString = false, preprocessorLine = false, summaryLine = false;
+        bool ParseSimpleIf(string parse, string[] defineConstants) {
+            int bracketPos;
+            while ((bracketPos = parse.LastIndexOf('(')) != -1) {
+                int endBracket = parse.IndexOf(')', bracketPos + 1);
+                parse = parse.Substring(0, bracketPos) +
+                    (ParseSimpleIf(parse.Substring(bracketPos + 1, endBracket - bracketPos - 1), defineConstants) ? "true" : "false") +
+                    parse.Substring(endBracket + 1);
+            }
+            string[] split = System.Text.RegularExpressions.Regex.Split(parse, @"\s+");
+            int arrPos = 0, splitEnd = split.Length - 1;
+            while (arrPos < splitEnd) {
+                bool first = split[arrPos].Equals("true") || Utils.ArrayContains(defineConstants, split[arrPos]),
+                    second = split[arrPos + 2].Equals("true") || Utils.ArrayContains(defineConstants, split[arrPos + 2]);
+                split[arrPos + 2] = (split[arrPos + 1].Equals("&&") ? first && second : first || second) ? "true" : "false";
+                arrPos += 2;
+            }
+            return split[arrPos].Equals("true");
+        }
+
+        void ParseBlock(string code, TreeNode node, string defines) {
+            int codeLen = code.Length, lastEnding = 0, lastSlash = -2, parenthesis = 0, depth = 0, lastRemovableDepth = 0;
+            bool commentLine = false, inRemovableBlock = false, inString = false, preprocessorLine = false, preprocessorSkip = false, summaryLine = false;
             string summary = string.Empty;
 
             // Parse defines
@@ -87,7 +108,7 @@ namespace DocSharp {
 
             for (int i = 0; i < codeLen; ++i) {
                 if (i != 0 && code[i - 1] != '\\') {
-                    // Skip multiline strings
+                    // Skip strings
                     if (!inString && code[i] == '"')
                         inString = true;
                     else if (inString) {
@@ -109,7 +130,7 @@ namespace DocSharp {
                     case ';':
                     case '{':
                     case '}':
-                        if (!commentLine && parenthesis == 0) {
+                        if (!commentLine && !preprocessorSkip && parenthesis == 0) {
                             bool instruction = code[i] == ';', block = code[i] == '{', closing = code[i] == '}';
                             if (block) ++depth;
                             if (closing) {
@@ -177,7 +198,7 @@ namespace DocSharp {
                             string type = string.Empty;
                             int spaceIndex = -1;
                             while ((spaceIndex = cutout.IndexOf(' ', spaceIndex + 1)) != -1) {
-                                if ((spaceIndex == -1 || !cutout.Substring(0, spaceIndex).Equals("delegate")) && // not just the delegate word in case of a delegate
+                                if ((spaceIndex == -1 || !cutout.Substring(0, spaceIndex).Equals("delegate")) && // not just the delegate word
                                     (cutout.LastIndexOf('<', spaceIndex) == -1 || cutout.IndexOf('>', spaceIndex) == -1)) { // not in a template type
                                     type = cutout.Substring(0, spaceIndex);
                                     if (type.IndexOf('(') != -1)
@@ -258,37 +279,48 @@ namespace DocSharp {
                     case '(':
                     case '[':
                     case '<':
-                        if (!inRemovableBlock && !commentLine)
+                        if (!inRemovableBlock && !commentLine && !preprocessorSkip)
                             ++parenthesis;
                         break;
                     case ')':
                     case ']':
                     case '>':
-                        if (!inRemovableBlock && !commentLine)
+                        if (!inRemovableBlock && !commentLine && !preprocessorSkip)
                             --parenthesis;
                         break;
                     case '/':
-                        if (!commentLine) {
-                            if (lastSlash == i - 1)
-                                commentLine = true;
-                            lastSlash = i;
-                        } else if (commentLine && !summaryLine) {
-                            if (lastSlash == i - 1)
-                                summaryLine = true;
-                            lastSlash = i;
+                        if (!preprocessorSkip) {
+                            if (!commentLine) {
+                                if (lastSlash == i - 1)
+                                    commentLine = true;
+                                lastSlash = i;
+                            } else if (commentLine && !summaryLine) {
+                                if (lastSlash == i - 1)
+                                    summaryLine = true;
+                                lastSlash = i;
+                            }
                         }
                         break;
                     case '#':
                         commentLine = preprocessorLine = true;
-                        preprocessorLineStart = i;
                         break;
                     case '\n':
                         if (preprocessorLine) {
-                            string line = code.Substring(preprocessorLineStart, i - preprocessorLineStart);
-                            // TODO
+                            string line = code.Substring(lastEnding, i - lastEnding).Trim();
+                            if (line.StartsWith("#define")) {
+                                string defined = line.Substring(line.IndexOf(' ')).TrimStart();
+                                Array.Resize(ref defineConstants, ++defineCount);
+                                defineConstants[defineCount - 1] = defined;
+                            } else if (line.StartsWith("#if") || line.StartsWith("#elif")) {
+                                int commentPos;
+                                if ((commentPos = line.IndexOf("//")) != -1)
+                                    line = line.Substring(0, commentPos).TrimEnd();
+                                preprocessorSkip = !ParseSimpleIf(line.Substring(line.IndexOf(' ')).TrimStart(), defineConstants);
+                            } else if (line.StartsWith("#endif"))
+                                preprocessorSkip = false;
                             preprocessorLine = false;
                         }
-                        if (commentLine) {
+                        if (commentLine || preprocessorSkip) {
                             commentLine = false;
                             lastEnding = i + 1;
                         }
@@ -303,10 +335,11 @@ namespace DocSharp {
             }
         }
 
-        void LoadFrom(string path, string defines = "") {
+        void LoadFrom(string path, string defines) {
             if (!Directory.Exists(path))
                 return;
             lastLoaded = path;
+            currentDefines.Text = "Code loaded with: " + (defines.Equals(string.Empty) ? "-" : defines);
             string[] files = Directory.GetFiles(path, "*.cs", SearchOption.AllDirectories);
             sourceInfo.Nodes.Clear();
             TreeNode global = import = sourceInfo.Nodes.Add(path.Substring(path.LastIndexOf('\\') + 1));
@@ -324,7 +357,7 @@ namespace DocSharp {
 
         void LoadSourceToolStripMenuItem_Click(object sender, EventArgs e) {
             if (folderDialog.ShowDialog() == DialogResult.OK) {
-                LoadFrom(folderDialog.SelectedPath);
+                LoadFrom(folderDialog.SelectedPath, defines.Text);
                 if (Properties.Settings.Default.Recents.Contains(folderDialog.SelectedPath + '\n'))
                     LoadRecent(folderDialog.SelectedPath);
                 else {

@@ -38,6 +38,14 @@ namespace DocSharp {
             }
         }
 
+        public static bool ArrayContains<T>(T[] array, T value) {
+            int len = array.Length;
+            for (int i = 0; i < len; ++i)
+                if (array[i].Equals(value))
+                    return true;
+            return false;
+        }
+
         public static void FillWithPHP(DirectoryInfo target) {
             string targetName = target.FullName + "\\index.php";
             if (!File.Exists(targetName))
@@ -116,8 +124,8 @@ namespace DocSharp {
 
         public static string QuickSummary(string fullSummary) {
             int summaryStart = fullSummary.IndexOf("<summary>") + 9;
-            return Regex.Replace(fullSummary.Substring(summaryStart, fullSummary.IndexOf("</summary>") - summaryStart)
-                .Replace("<see cref=\"", string.Empty).Replace("\"/>", ""), @"\r\n?|\n", " ");
+            return summaryStart != 8 ? Regex.Replace(fullSummary.Substring(summaryStart, fullSummary.IndexOf("</summary>") - summaryStart)
+                .Replace("<see cref=\"", string.Empty).Replace("\"/>", ""), @"\r\n?|\n", " ") : string.Empty;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

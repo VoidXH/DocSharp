@@ -1,7 +1,9 @@
-﻿namespace DocSharp {
+﻿#define TEST
+
+namespace DocSharp {
     public class GenericTestClass<T1, T2> { }
     public abstract class AbstractTestClass {
-#if DEBUG
+#if RELEASE  &&  (TEST || UNDEFINED) && true // Tests the preprocessor instruction parser
         public class EmbeddedClass { public const string Hello = "Hello, \"World\"!"; }
 #endif
         GenericTestClass<string, int> GenericTestField = new GenericTestClass<string, int>();

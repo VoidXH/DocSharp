@@ -142,5 +142,17 @@ namespace DocSharp.Properties {
                 this["PhpFillers"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("RELEASE; MASTER")]
+        public string DefineConstants {
+            get {
+                return ((string)(this["DefineConstants"]));
+            }
+            set {
+                this["DefineConstants"] = value;
+            }
+        }
     }
 }

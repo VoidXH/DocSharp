@@ -32,5 +32,8 @@
     <Setting Name="PhpFillers" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
     </Setting>
+    <Setting Name="DefineConstants" Type="System.String" Scope="User">
+      <Value Profile="(Default)">RELEASE; MASTER</Value>
+    </Setting>
   </Settings>
 </SettingsFile>
