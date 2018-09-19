@@ -75,6 +75,14 @@ namespace DocSharp {
                 .Append(Design.Extension).ToString();
         }
 
+        static string NodeName(string name, int tryCount) {
+            StringBuilder result = new StringBuilder(name);
+            result.Replace("*", "Mul").Replace("/", "Div").Replace("<", "Lt").Replace(">", "Gt");
+            if (tryCount != 0)
+                result.Append(tryCount);
+            return result.ToString();
+        }
+
         public static void MakeNodeName(TreeNode node, Visibility vis) {
             if (node.Name.Equals(string.Empty)) {
                 int parenthesis = node.Text.IndexOf('(');
@@ -84,7 +92,7 @@ namespace DocSharp {
                     nameOnly = nameOnly.Substring(0, angleBracket);
                 int tryCount = 0;
                 while (true) {
-                    string tryWith = nameOnly + (tryCount++ == 0 ? string.Empty : (tryCount).ToString());
+                    string tryWith = NodeName(nameOnly, tryCount++);
                     bool found = false;
                     foreach (TreeNode other in node.Parent.Nodes) {
                         if (other.Name.Equals(tryWith, StringComparison.OrdinalIgnoreCase)) {
