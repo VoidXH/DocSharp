@@ -7,11 +7,17 @@ using System.Reflection;
 using System.Windows.Forms;
 
 namespace DocSharp {
+    /// <summary>
+    /// The main window of Doc#.
+    /// </summary>
     public partial class DocSharp : Form {
         string lastLoaded = string.Empty;
         Font italic;
         TreeNode import;
 
+        /// <summary>
+        /// Load code from a folder.
+        /// </summary>
         void LoadRecent(string recent) {
             string newRecents = Properties.Settings.Default.Recents;
             if (newRecents.Length == 0)
@@ -29,10 +35,16 @@ namespace DocSharp {
             LoadFrom(recent, defines.Text);
         }
 
+        /// <summary>
+        /// Load code from a folder which is on the recents list.
+        /// </summary>
         void LoadRecent(object sender, EventArgs e) {
             LoadRecent(((ToolStripMenuItem)sender).Text);
         }
 
+        /// <summary>
+        /// Fill the recents list with the saved entries.
+        /// </summary>
         void LoadRecents() {
             loadRecentToolStripMenuItem.DropDownItems.Clear();
             string[] recents = Properties.Settings.Default.Recents.Split('\n');
@@ -46,6 +58,9 @@ namespace DocSharp {
             }
         }
 
+        /// <summary>
+        /// Load settings and set up the window accordingly.
+        /// </summary>
         public DocSharp() {
             InitializeComponent();
             italic = new Font(sourceInfo.Font, FontStyle.Italic);
@@ -62,6 +77,9 @@ namespace DocSharp {
             exportPublic.Checked = Properties.Settings.Default.VisibilityPublic;
         }
 
+        /// <summary>
+        /// Save settings when Doc# is closed.
+        /// </summary>
         private void DocSharp_FormClosed(object sender, FormClosedEventArgs e) {
             Properties.Settings.Default.ExpandEnums = expandEnums.Checked;
             Properties.Settings.Default.ExpandStructs = expandStructs.Checked;
@@ -76,6 +94,11 @@ namespace DocSharp {
             Properties.Settings.Default.Save();
         }
 
+        /// <summary>
+        /// Evaluate a preprocessor branch.
+        /// </summary>
+        /// <param name="parse">Condition</param>
+        /// <param name="defineConstants">Constants that are true</param>
         bool ParseSimpleIf(string parse, string[] defineConstants) {
             int bracketPos;
             while ((bracketPos = parse.LastIndexOf('(')) != -1) {
@@ -95,6 +118,12 @@ namespace DocSharp {
             return split[arrPos].Equals("true");
         }
 
+        /// <summary>
+        /// Generate an element tree from code.
+        /// </summary>
+        /// <param name="code">Code</param>
+        /// <param name="node">Root node</param>
+        /// <param name="defines">Defined constants</param>
         void ParseBlock(string code, TreeNode node, string defines) {
             int codeLen = code.Length, lastEnding = 0, lastSlash = -2, parenthesis = 0, depth = 0, lastRemovableDepth = 0;
             bool commentLine = false, inRemovableBlock = false, inString = false, preprocessorLine = false, preprocessorSkip = false, summaryLine = false;
@@ -335,6 +364,11 @@ namespace DocSharp {
             }
         }
 
+        /// <summary>
+        /// Load code from a directory.
+        /// </summary>
+        /// <param name="path">Directory path</param>
+        /// <param name="defines">Defined constants</param>
         void LoadFrom(string path, string defines) {
             if (!Directory.Exists(path))
                 return;
@@ -351,10 +385,16 @@ namespace DocSharp {
             sourceInfo.EndUpdate();
         }
 
+        /// <summary>
+        /// Reload the code with new constants
+        /// </summary>
         private void ReloadConstants_Click(object sender, EventArgs e) {
             LoadFrom(lastLoaded, defines.Text);
         }
 
+        /// <summary>
+        /// Open the directory picker for loading code.
+        /// </summary>
         void LoadSourceToolStripMenuItem_Click(object sender, EventArgs e) {
             if (folderDialog.ShowDialog() == DialogResult.OK) {
                 LoadFrom(folderDialog.SelectedPath, defines.Text);
@@ -371,6 +411,9 @@ namespace DocSharp {
             }
         }
 
+        /// <summary>
+        /// Display the selected code element's properties.
+        /// </summary>
         private void SourceInfo_AfterSelect(object sender, TreeViewEventArgs e) {
             string info = string.Empty;
             TreeNode node = sourceInfo.SelectedNode;
@@ -388,6 +431,10 @@ namespace DocSharp {
             infoLabel.Text = info;
         }
 
+        /// <summary>
+        /// Set the exportability of the selected and all child nodes based on user preferences.
+        /// </summary>
+        /// <param name="node">Root node</param>
         void SetExportability(TreeNode node) {
             foreach (TreeNode child in node.Nodes) {
                 ElementInfo tag = ((ElementInfo)child.Tag);
@@ -409,6 +456,9 @@ namespace DocSharp {
             }
         }
 
+        /// <summary>
+        /// Start documentation generation process.
+        /// </summary>
         private void GenerateButton_Click(object sender, EventArgs e) {
             if (import == null)
                 return;
@@ -430,6 +480,9 @@ namespace DocSharp {
             }
         }
 
+        /// <summary>
+        /// Show "About".
+        /// </summary>
         private void AboutToolStripMenuItem_Click(object sender, EventArgs e) {
             MessageBox.Show("Doc# v" + FileVersionInfo.GetVersionInfo(Assembly.GetExecutingAssembly().Location).FileVersion + " by VoidX\n" +
                 "http://www.voidx.tk/", "About");
