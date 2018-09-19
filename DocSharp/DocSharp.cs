@@ -208,12 +208,12 @@ namespace DocSharp {
                                     break;
                                 }
                             }
-                            Kinds kind = Kinds.Variables;
-                            if (type.Equals("class")) kind = Kinds.Classes;
-                            else if (type.Equals("interface")) kind = Kinds.Interfaces;
-                            else if (type.Equals("namespace")) kind = Kinds.Namespaces;
-                            else if (type.Equals("enum")) kind = Kinds.Enums;
-                            else if (type.Equals("struct")) kind = Kinds.Structs;
+                            Element kind = Element.Variables;
+                            if (type.Equals("class")) kind = Element.Classes;
+                            else if (type.Equals("interface")) kind = Element.Interfaces;
+                            else if (type.Equals("namespace")) kind = Element.Namespaces;
+                            else if (type.Equals("enum")) kind = Element.Enums;
+                            else if (type.Equals("struct")) kind = Element.Structs;
 
                             // Extension
                             string extends = string.Empty;
@@ -224,11 +224,11 @@ namespace DocSharp {
                             }
 
                             // Default visibility
-                            if (vis == Visibility.Default && kind != Kinds.Namespaces) {
-                                if (node.Tag != null && (((ObjectInfo)node.Tag).Kind == Kinds.Enums ||
-                                    ((ObjectInfo)node.Tag).Kind == Kinds.Interfaces))
+                            if (vis == Visibility.Default && kind != Element.Namespaces) {
+                                if (node.Tag != null && (((ElementInfo)node.Tag).Kind == Element.Enums ||
+                                    ((ElementInfo)node.Tag).Kind == Element.Interfaces))
                                     vis = Visibility.Public;
-                                else if (kind == Kinds.Classes || kind == Kinds.Interfaces || kind == Kinds.Structs)
+                                else if (kind == Element.Classes || kind == Element.Interfaces || kind == Element.Structs)
                                     vis = Visibility.Internal;
                                 else
                                     vis = Visibility.Private;
@@ -250,23 +250,23 @@ namespace DocSharp {
                                 }
                                 if (block) {
                                     node = newNode;
-                                    if (kind == Kinds.Variables) {
-                                        kind = cutout.IndexOf('(') != -1 ? Kinds.Functions : Kinds.Properties;
+                                    if (kind == Element.Variables) {
+                                        kind = cutout.IndexOf('(') != -1 ? Element.Functions : Element.Properties;
                                         lastRemovableDepth = depth;
                                         inRemovableBlock = true;
                                     }
                                 }
                                 if (newNode.Tag != null) {
-                                    ObjectInfo tag = (ObjectInfo)newNode.Tag;
+                                    ElementInfo tag = (ElementInfo)newNode.Tag;
                                     tag.Summary += summary;
                                     newNode.Tag = tag;
                                 } else if (type.Equals(string.Empty) && newNode.Parent.Nodes.Count > 1) { // "int a, b;" case, copy tags
-                                    ObjectInfo inherited = (ObjectInfo)newNode.Parent.Nodes[newNode.Parent.Nodes.Count - 2].Tag;
+                                    ElementInfo inherited = (ElementInfo)newNode.Parent.Nodes[newNode.Parent.Nodes.Count - 2].Tag;
                                     inherited.Name = cutout;
                                     inherited.Summary = summary;
                                     newNode.Tag = inherited;
                                 } else
-                                    newNode.Tag = new ObjectInfo {
+                                    newNode.Tag = new ElementInfo {
                                         Name = cutout, Attributes = attributes, DefaultValue = defaultValue, Extends = extends,
                                         Modifiers = modifiers.Trim(), Summary = summary, Type = type, Vis = vis, Kind = kind
                                     };
@@ -375,7 +375,7 @@ namespace DocSharp {
             string info = string.Empty;
             TreeNode node = sourceInfo.SelectedNode;
             if (node != null && node.Tag != null) {
-                ObjectInfo tag = (ObjectInfo)node.Tag;
+                ElementInfo tag = (ElementInfo)node.Tag;
                 Utils.AppendIfExists(ref info, "Attributes", tag.Attributes);
                 Utils.AppendIfExists(ref info, "Visibility", tag.Vis.ToString().ToLower());
                 Utils.AppendIfExists(ref info, "Modifiers", tag.Modifiers);
@@ -390,17 +390,17 @@ namespace DocSharp {
 
         void SetExportability(TreeNode node) {
             foreach (TreeNode child in node.Nodes) {
-                ObjectInfo tag = ((ObjectInfo)child.Tag);
+                ElementInfo tag = ((ElementInfo)child.Tag);
                 if (tag.Vis == Visibility.Default || (tag.Vis == Visibility.Public && exportPublic.Checked) ||
                     (tag.Vis == Visibility.Internal && exportInternal.Checked) || (tag.Vis == Visibility.Protected && exportProtected.Checked) ||
                     (tag.Vis == Visibility.Private && exportPrivate.Checked))
                     tag.Exportable = true;
                 if (tag.Exportable) {
                     child.Tag = tag;
-                    if (tag.Kind == Kinds.Enums) {
+                    if (tag.Kind == Element.Enums) {
                         if (expandEnums.Checked)
                             SetExportability(child);
-                    } else if (tag.Kind == Kinds.Structs) {
+                    } else if (tag.Kind == Element.Structs) {
                         if (expandStructs.Checked)
                             SetExportability(child);
                     } else

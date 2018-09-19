@@ -8,36 +8,63 @@ using System.Text.RegularExpressions;
 using System.Windows.Forms;
 
 namespace DocSharp {
-    enum Kinds { Namespaces, Classes, Interfaces, Enums, Structs, Functions, Properties, Variables }
+    /// <summary>
+    /// Code element kinds.
+    /// </summary>
+    enum Element { Namespaces, Classes, Interfaces, Enums, Structs, Functions, Properties, Variables }
+    /// <summary>
+    /// Code element visibilities.
+    /// </summary>
     enum Visibility { Default, Private, Protected, Internal, Public }
 
-    struct ObjectInfo {
+    /// <summary>
+    /// All documentation information about a code element.
+    /// </summary>
+    struct ElementInfo {
         public bool Exportable;
         public string Name, Attributes, DefaultValue, Extends, Modifiers, Summary, Type;
         public Visibility Vis;
-        public Kinds Kind;
+        public Element Kind;
     }
 
     static class Constants {
+        /// <summary>
+        /// Element modifiers.
+        /// </summary>
         public static readonly string[] modifiers = {
             "abstract ", "async ", "const ", "event ", "extern ", "new ", "override ",
             "readonly ", "sealed ", "static ", "unsafe ", "virtual ", "volatile "
         };
 
+        /// <summary>
+        /// Visibility marker characters. Their position in the array must match their position in <see cref="Visibility"/>.
+        /// </summary>
         public static readonly char[] visibilities = { 'x', '-', '#', '~', '+' };
     }
 
+    /// <summary>
+    /// General utilities.
+    /// </summary>
     static class Utils {
+        /// <summary>
+        /// If the value of a property is filled, add it in a new line to the target with a prefix.
+        /// </summary>
+        /// <param name="target">Output</param>
+        /// <param name="name">Prefix separated with ": "</param>
+        /// <param name="value">Value of the parameter called <paramref name="name"/></param>
         public static void AppendIfExists(ref string target, string name, string value) {
-            if (!value.Equals(string.Empty)) {
-                string pass = name + ": " + value;
-                if (target.Equals(string.Empty))
-                    target = pass;
-                else
-                    target += '\n' + pass;
+            if (value.Length != 0) {
+                StringBuilder pass = new StringBuilder();
+                if (target.Length != 0)
+                    pass.Append('\n');
+                pass.Append(name).Append(": ").Append(value);
+                target += pass.ToString();
             }
         }
 
+        /// <summary>
+        /// Gets if an array contains a given value.
+        /// </summary>
         public static bool ArrayContains<T>(T[] array, T value) {
             int len = array.Length;
             for (int i = 0; i < len; ++i)
@@ -46,6 +73,9 @@ namespace DocSharp {
             return false;
         }
 
+        /// <summary>
+        /// Fills a folder and all its subfolders with empty index.php files where there is no index.php found to prevent directory listing.
+        /// </summary>
         public static void FillWithPHP(DirectoryInfo target) {
             string targetName = target.FullName + "\\index.php";
             if (!File.Exists(targetName))
@@ -56,6 +86,9 @@ namespace DocSharp {
                 FillWithPHP(subdirs[i]);
         }
 
+        /// <summary>
+        /// Get a child node of a <see cref="TreeNode"/> by name.
+        /// </summary>
         public static TreeNode GetNodeByText(TreeNode parent, string text) {
             IEnumerator enumer = parent.Nodes.GetEnumerator();
             while (enumer.MoveNext())
@@ -64,17 +97,31 @@ namespace DocSharp {
             return null;
         }
 
+        /// <summary>
+        /// Generate an indented line of code.
+        /// </summary>
+        /// <param name="text">Text to indent</param>
+        /// <param name="chars">Amount of spaces used in indention</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static string Indent(string text, int chars) {
             return text.Replace("\n", '\n' + new string(' ', chars));
         }
 
+        /// <summary>
+        /// Generate link to a code element found in the same depth.
+        /// </summary>
+        /// <param name="to">Target code element</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static string LocalLink(TreeNode to) {
-            return new StringBuilder(to.Name).Append(((ObjectInfo)to.Tag).Kind < Kinds.Functions ? "\\index." : ".")
+            return new StringBuilder(to.Name).Append(((ElementInfo)to.Tag).Kind < Element.Functions ? "\\index." : ".")
                 .Append(Design.Extension).ToString();
         }
 
+        /// <summary>
+        /// Assembles the internally used name and filename for an element.
+        /// </summary>
+        /// <param name="name">Name of the node (for functions, the function name only)</param>
+        /// <param name="tryCount">The number of times this filename has been tried</param>
         static string NodeName(string name, int tryCount) {
             StringBuilder result = new StringBuilder(name);
             result.Replace("*", "Mul").Replace("/", "Div").Replace("<", "Lt").Replace(">", "Gt");
@@ -83,6 +130,11 @@ namespace DocSharp {
             return result.ToString();
         }
 
+        /// <summary>
+        /// Generates and sets the internally used name and filename for an element.
+        /// </summary>
+        /// <param name="node">Code element</param>
+        /// <param name="vis">Visibility of the code element - required as the code element is under construction when this is called</param>
         public static void MakeNodeName(TreeNode node, Visibility vis) {
             if (node.Name.Equals(string.Empty)) {
                 int parenthesis = node.Text.IndexOf('(');
@@ -110,14 +162,9 @@ namespace DocSharp {
                 node.Text = Constants.visibilities[(int)vis] + node.Text;
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void MoveModifier(ref string source, ref string target, string modifier) {
-            if (source.Contains(modifier)) {
-                source = source.Replace(modifier, string.Empty).TrimStart();
-                target += modifier;
-            }
-        }
-
+        /// <summary>
+        /// Move modifiers from one string to another.
+        /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void MoveModifiers(ref string source, ref string target, params string[] modifiers) {
             IEnumerator enumer = modifiers.GetEnumerator();
@@ -130,17 +177,29 @@ namespace DocSharp {
             source.TrimStart();
         }
 
+        /// <summary>
+        /// Export just the summary of a code element without references.
+        /// </summary>
+        /// <param name="fullSummary">The entire XML block of the documentation</param>
         public static string QuickSummary(string fullSummary) {
             int summaryStart = fullSummary.IndexOf("<summary>") + 9;
             return summaryStart != 8 ? Regex.Replace(fullSummary.Substring(summaryStart, fullSummary.IndexOf("</summary>") - summaryStart)
                 .Replace("<see cref=\"", string.Empty).Replace("\"/>", ""), @"\r\n?|\n", " ") : string.Empty;
         }
 
+        /// <summary>
+        /// Remove and export just the summary of a code element with referenes.
+        /// </summary>
+        /// <param name="source">The entire XML block of the documentation</param>
+        /// <param name="node">Code element</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static string QuickSummary(string source, TreeNode node) {
             return RemoveTag(ref source, "summary", node);
         }
 
+        /// <summary>
+        /// Remove a modifier from a signature.
+        /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool RemoveModifier(ref string source, string modifier) {
             if (source.Contains(modifier)) {
@@ -150,6 +209,10 @@ namespace DocSharp {
             return false;
         }
 
+        /// <summary>
+        /// Remove the next parameter summary and return its name and description or null if there is no remaining parameter summaries.
+        /// </summary>
+        /// <param name="source">The entire XML block of the documentation.</param>
         public static string[] RemoveParam(ref string source) {
             int startPos = source.IndexOf("<param"); if (startPos == -1) return null;
             int cutPos = source.IndexOf('>', startPos); if (cutPos == -1) return null;
@@ -165,6 +228,10 @@ namespace DocSharp {
             return output;
         }
 
+        /// <summary>
+        /// Remove parameter names and default values from a function signature, keep only their types.
+        /// </summary>
+        /// <param name="signature">Function signature</param>
         public static string RemoveParamNames(string signature) {
             int paramStart, paramEnd;
             if ((paramStart = signature.IndexOf('(') + 1) != 0 && (paramEnd = signature.IndexOf(')', paramStart)) != -1) {
@@ -186,6 +253,13 @@ namespace DocSharp {
             return signature;
         }
 
+        /// <summary>
+        /// Remove a tag from a documentation block and return its value.
+        /// </summary>
+        /// <param name="source">The entire XML documentation block</param>
+        /// <param name="tag">Tag name</param>
+        /// <param name="node">Code element</param>
+        /// <returns></returns>
         public static string RemoveTag(ref string source, string tag, TreeNode node) {
             int startPos = source.IndexOf('<' + tag), endPos = source.IndexOf("</" + tag);
             if (startPos == -1 || endPos == -1)
@@ -199,6 +273,11 @@ namespace DocSharp {
             return output;
         }
 
+        /// <summary>
+        /// Replace references in a description with links.
+        /// </summary>
+        /// <param name="source">Description</param>
+        /// <param name="node">Code element</param>
         static void ReplaceReferences(ref string source, TreeNode node) {
             int seePos;
             while ((seePos = source.IndexOf("<see")) != -1) {
@@ -228,6 +307,9 @@ namespace DocSharp {
             }
         }
 
+        /// <summary>
+        /// Count the spaces before a position in the given string.
+        /// </summary>
         public static int SpacesBefore(string text, int index) {
             int count = 0;
             for (int i = index - 1; i >= 0 && text[index] == ' '; --i)

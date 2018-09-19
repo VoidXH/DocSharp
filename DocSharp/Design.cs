@@ -30,8 +30,8 @@ namespace DocSharp {
             Directory.CreateDirectory(path);
             GeneratePage(path + "\\index." + Extension, node, depth);
             foreach (TreeNode child in node.Nodes) {
-                if (child.Tag == null || ((ObjectInfo)child.Tag).Exportable) {
-                    if (((ObjectInfo)child.Tag).Kind >= Kinds.Functions)
+                if (child.Tag == null || ((ElementInfo)child.Tag).Exportable) {
+                    if (((ElementInfo)child.Tag).Kind >= Element.Functions)
                         GeneratePage(path + '\\' + child.Name + '.' + Extension, child, depth);
                     else
                         GenerateDocumentation(child, path + '\\' + child.Name, depth + 1);
@@ -49,6 +49,14 @@ namespace DocSharp {
             GenerateDocumentation(node, path, 0);
         }
 
+        /// <summary>
+        /// Create the menu on the side of a documentation page.
+        /// </summary>
+        /// <param name="output">Generated page content</param>
+        /// <param name="node">The node of the currently exported element</param>
+        /// <param name="child">Call with null, internally used when the recursion generates higher layers of the menu</param>
+        /// <param name="locally">The current file is to be placed in the same folder as the index</param>
+        /// <param name="path">Relative file system path to the checked node from the starting node</param>
         static void BuildMenu(ref string output, TreeNode node, TreeNode child, bool locally, string path = "") {
             StringBuilder front = new StringBuilder();
             bool appendToFront = true;
@@ -59,10 +67,10 @@ namespace DocSharp {
                 ++indentLength;
 
             foreach (TreeNode entry in node.Nodes) {
-                if (((ObjectInfo)entry.Tag).Exportable) {
+                if (((ElementInfo)entry.Tag).Exportable) {
                     string entryText = !path.Equals(string.Empty) && entry.Nodes.Count != 0 ? menuElement : menuSubelement;
                     entryText = entryText.Replace(elementMarker,
-                        Utils.RemoveParamNames(((ObjectInfo)entry.Tag).Name)).Replace(linkMarker, path + Utils.LocalLink(entry))
+                        Utils.RemoveParamNames(((ElementInfo)entry.Tag).Name)).Replace(linkMarker, path + Utils.LocalLink(entry))
                         .Replace(indentMarker, indentLength != 0 ? "&nbsp;" + new string(' ', indentLength - 1) : string.Empty);
                     if (appendToFront) {
                         if (entry == child)
@@ -78,6 +86,11 @@ namespace DocSharp {
                 BuildMenu(ref output, node.Parent, node, false, !locally ? "..\\" + path : path);
         }
 
+        /// <summary>
+        /// Generate the bofy of an exported page.
+        /// </summary>
+        /// <param name="from">Target code element</param>
+        /// <param name="locally">The current file is to be placed in the same folder as the index</param>
         static string Base(TreeNode from, bool locally) {
             string menuBuild = string.Empty;
             BuildMenu(ref menuBuild, from, null, locally);
@@ -87,11 +100,20 @@ namespace DocSharp {
 
         static bool firstEntry, evenRow;
 
+        /// <summary>
+        /// Start the generation of a content block.
+        /// </summary>
         static void BlockStart() {
             firstEntry = true;
             evenRow = false;
         }
 
+        /// <summary>
+        /// Add a row to a content block.
+        /// </summary>
+        /// <param name="builder"><see cref="StringBuilder"/> of the content block</param>
+        /// <param name="entry">Property or reference name</param>
+        /// <param name="description">Value or description of <paramref name="entry"/></param>
         static void BlockAppend(StringBuilder builder, string entry, string description) {
             builder.Append(contentEntry.Replace(elementMarker, entry).Replace(contentMarker, description)
                     .Replace(subelementMarker, evenRow ? " class=\"" + evenRowClass + "\"" : string.Empty))
@@ -100,6 +122,12 @@ namespace DocSharp {
             evenRow = !evenRow;
         }
 
+        /// <summary>
+        /// Generate a content block for all entries in a list.
+        /// </summary>
+        /// <param name="nodes">Code elements</param>
+        /// <param name="title">Title of the content block</param>
+        /// <returns></returns>
         static string ContentBlock(List<TreeNode> nodes, string title) {
             if (nodes.Count == 0)
                 return string.Empty;
@@ -110,14 +138,19 @@ namespace DocSharp {
             BlockStart();
             while (enumer.MoveNext()) {
                 TreeNode node = (TreeNode)enumer.Current;
-                StringBuilder link = new StringBuilder(((ObjectInfo)node.Tag).Type).Append(" <a href=\"").Append(Utils.LocalLink(node))
-                    .Append("\">").Append(((ObjectInfo)node.Tag).Name).Append("</a>");
-                BlockAppend(block, link.ToString(), Utils.QuickSummary(((ObjectInfo)node.Tag).Summary, node));
+                StringBuilder link = new StringBuilder(((ElementInfo)node.Tag).Type).Append(" <a href=\"").Append(Utils.LocalLink(node))
+                    .Append("\">").Append(((ElementInfo)node.Tag).Name).Append("</a>");
+                BlockAppend(block, link.ToString(), Utils.QuickSummary(((ElementInfo)node.Tag).Summary, node));
             }
             return block.Append(@"
 </table>").ToString();
         }
 
+        /// <summary>
+        /// Generate a content block for all entries in a list, grouped by visibility.
+        /// </summary>
+        /// <param name="nodes">Code elements</param>
+        /// <param name="titlePostfix">Postfix after visibility (e.g. functions)</param>
         static string VisibilityContentBlock(List<TreeNode> nodes, string titlePostfix) {
             List<TreeNode>[] outs = new List<TreeNode>[(int)Visibility.Public * 2];
             for (int i = 0; i < outs.Length; ++i)
@@ -126,8 +159,8 @@ namespace DocSharp {
             IEnumerator enumer = nodes.GetEnumerator();
             while (enumer.MoveNext()) {
                 TreeNode current = (TreeNode)enumer.Current;
-                bool isStatic = ((ObjectInfo)current.Tag).Modifiers.Contains("static");
-                outs[(int)((ObjectInfo)current.Tag).Vis - 1 + (isStatic ? (int)Visibility.Public : 0)].Add(current);
+                bool isStatic = ((ElementInfo)current.Tag).Modifiers.Contains("static");
+                outs[(int)((ElementInfo)current.Tag).Vis - 1 + (isStatic ? (int)Visibility.Public : 0)].Add(current);
             }
 
             titlePostfix = ' ' + titlePostfix;
@@ -140,27 +173,30 @@ namespace DocSharp {
             return output.ToString();
         }
 
+        /// <summary>
+        /// Generate the documentation page's relevant information of the code element.
+        /// </summary>
         static string Content(TreeNode node) {
-            List<TreeNode>[] types = new List<TreeNode>[(int)Kinds.Variables + 1];
-            for (int i = 0; i <= (int)Kinds.Variables; ++i)
+            List<TreeNode>[] types = new List<TreeNode>[(int)Element.Variables + 1];
+            for (int i = 0; i <= (int)Element.Variables; ++i)
                 types[i] = new List<TreeNode>();
 
             IEnumerator enumer = node.Nodes.GetEnumerator();
             while (enumer.MoveNext()) {
                 TreeNode current = (TreeNode)enumer.Current;
-                if (((ObjectInfo)current.Tag).Exportable)
-                    types[(int)((ObjectInfo)current.Tag).Kind].Add(current);
+                if (((ElementInfo)current.Tag).Exportable)
+                    types[(int)((ElementInfo)current.Tag).Kind].Add(current);
             }
 
             StringBuilder output = new StringBuilder("<h1>");
             if (node.Tag != null)
-                output.Append(((ObjectInfo)node.Tag).Type).Append(' ').Append(((ObjectInfo)node.Tag).Name);
+                output.Append(((ElementInfo)node.Tag).Type).Append(' ').Append(((ElementInfo)node.Tag).Name);
             else
                 output.Append(node.Name);
             output.AppendLine("</h1>");
 
             if (node.Tag != null) {
-                ObjectInfo tag = (ObjectInfo)node.Tag;
+                ElementInfo tag = (ElementInfo)node.Tag;
                 string summary = tag.Summary;
                 BlockStart();
                 output.AppendLine(Utils.RemoveTag(ref summary, "summary", node.Nodes.Count != 0 ? node.Nodes[0] : node)).Append("<table>");
@@ -202,13 +238,19 @@ namespace DocSharp {
                 }
             }
 
-            for (int i = 0; i <= (int)Kinds.Variables; ++i) {
-                output.Append(i != (int)Kinds.Namespaces ? VisibilityContentBlock(types[i], ((Kinds)i).ToString().ToLower()) :
+            for (int i = 0; i <= (int)Element.Variables; ++i) {
+                output.Append(i != (int)Element.Namespaces ? VisibilityContentBlock(types[i], ((Element)i).ToString().ToLower()) :
                     ContentBlock(types[i], "Namespaces"));
             }
             return output.ToString();
         }
 
+        /// <summary>
+        /// Export a documentation page.
+        /// </summary>
+        /// <param name="path">Target file name</param>
+        /// <param name="site">Node of the element to export</param>
+        /// <param name="depth">Depth in the file system structure relative to the export root</param>
         static void GeneratePage(string path, TreeNode site, int depth) {
             string baseBuild = Base(site, !path.EndsWith("index." + Extension))
                 .Replace(cssMarker, string.Concat(Enumerable.Repeat("..\\", depth)) + stylesheet);
