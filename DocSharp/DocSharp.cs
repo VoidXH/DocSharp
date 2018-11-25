@@ -125,7 +125,7 @@ namespace DocSharp {
         /// <param name="node">Root node</param>
         /// <param name="defines">Defined constants</param>
         void ParseBlock(string code, TreeNode node, string defines) {
-            int codeLen = code.Length, lastEnding = 0, lastSlash = -2, parenthesis = 0, depth = 0, lastRemovableDepth = 0;
+            int codeLen = code.Length, lastEnding = 0, lastSlash = -2, lastEquals = -2, parenthesis = 0, depth = 0, lastRemovableDepth = 0;
             bool commentLine = false, inRemovableBlock = false, inString = false, preprocessorLine = false, preprocessorSkip = false, summaryLine = false;
             string summary = string.Empty;
 
@@ -187,6 +187,9 @@ namespace DocSharp {
                                 break;
                             if (cutout.EndsWith("="))
                                 cutout = cutout.Remove(cutout.Length - 2, 1).TrimEnd();
+                            int lambda = cutout.IndexOf("=>");
+                            if (lambda >= 0)
+                                cutout = cutout.Substring(0, lambda);
 
                             // Attributes
                             string attributes = string.Empty;
@@ -314,7 +317,7 @@ namespace DocSharp {
                     case ')':
                     case ']':
                     case '>':
-                        if (!inRemovableBlock && !commentLine && !preprocessorSkip)
+                        if (lastEquals != i - 1 && !inRemovableBlock && !commentLine && !preprocessorSkip)
                             --parenthesis;
                         break;
                     case '/':
@@ -329,6 +332,9 @@ namespace DocSharp {
                                 lastSlash = i;
                             }
                         }
+                        break;
+                    case '=':
+                        lastEquals = i;
                         break;
                     case '#':
                         commentLine = preprocessorLine = true;
