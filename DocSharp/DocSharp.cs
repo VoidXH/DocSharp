@@ -246,6 +246,7 @@ namespace DocSharp {
                             else if (type.Equals("namespace")) kind = Element.Namespaces;
                             else if (type.Equals("enum")) kind = Element.Enums;
                             else if (type.Equals("struct")) kind = Element.Structs;
+                            else if (lambda >= 0) kind = cutout.Contains('(') ? Element.Functions : Element.Properties;
 
                             // Extension
                             string extends = string.Empty;
