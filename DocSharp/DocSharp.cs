@@ -126,7 +126,8 @@ namespace DocSharp {
         /// <param name="defines">Defined constants</param>
         void ParseBlock(string code, TreeNode node, string defines) {
             int codeLen = code.Length, lastEnding = 0, lastSlash = -2, lastEquals = -2, parenthesis = 0, depth = 0, lastRemovableDepth = 0;
-            bool commentLine = false, inRemovableBlock = false, inString = false, preprocessorLine = false, preprocessorSkip = false, summaryLine = false;
+            bool commentLine = false, inRemovableBlock = false, inString = false, preprocessorLine = false, preprocessorSkip = false,
+                summaryLine = false, inTemplate = false, propertyArray = false;
             string summary = string.Empty;
 
             // Parse defines
@@ -160,13 +161,22 @@ namespace DocSharp {
                     case '{':
                     case '}':
                         if (!commentLine && !preprocessorSkip && parenthesis == 0) {
+                            if (code[i] == ',' && inTemplate)
+                                continue;
+                            inTemplate = false;
                             bool instruction = code[i] == ';', block = code[i] == '{', closing = code[i] == '}';
-                            if (block) ++depth;
+                            if (block)
+                                ++depth;
                             if (closing) {
                                 --depth;
                                 if (inRemovableBlock && depth < lastRemovableDepth) {
                                     inRemovableBlock = false;
                                     lastEnding = i;
+                                    if (propertyArray) {
+                                        ++lastEnding;
+                                        propertyArray = false;
+                                        break;
+                                    }
                                 }
                             }
                             if (inRemovableBlock)
@@ -185,6 +195,17 @@ namespace DocSharp {
 
                             if (cutout.StartsWith("using"))
                                 break;
+
+                            // Property array initialization
+                            int nodes = node.Nodes.Count;
+                            if (block && cutout.StartsWith("=") &&
+                                nodes != 0 && ((ElementInfo)node.Nodes[nodes - 1].Tag).Kind == Element.Properties) {
+                                lastRemovableDepth = depth;
+                                inRemovableBlock = true;
+                                propertyArray = true;
+                                break;
+                            }
+
                             if (cutout.EndsWith("="))
                                 cutout = cutout.Remove(cutout.Length - 2, 1).TrimEnd();
                             int lambda = cutout.IndexOf("=>");
@@ -231,7 +252,8 @@ namespace DocSharp {
                             int spaceIndex = -1;
                             while ((spaceIndex = cutout.IndexOf(' ', spaceIndex + 1)) != -1) {
                                 if ((spaceIndex == -1 || !cutout.Substring(0, spaceIndex).Equals("delegate")) && // not just the delegate word
-                                    (cutout.LastIndexOf('<', spaceIndex) == -1 || cutout.IndexOf('>', spaceIndex) == -1)) { // not in a template type
+                                    // not in a template type
+                                    (cutout.LastIndexOf('<', spaceIndex) == -1 || cutout.IndexOf('>', spaceIndex) == -1)) {
                                     type = cutout.Substring(0, spaceIndex);
                                     if (type.IndexOf('(') != -1)
                                         type = "Constructor";
@@ -304,22 +326,28 @@ namespace DocSharp {
                                         Modifiers = modifiers.Trim(), Summary = summary, Type = type, Vis = vis, Kind = kind
                                     };
                             }
-                            if (closing)
+                            if (closing && node.Parent != null)
                                 node = node.Parent;
                             summary = string.Empty;
                         }
                         break;
                     case '(':
                     case '[':
-                    case '<':
                         if (!inRemovableBlock && !commentLine && !preprocessorSkip)
                             ++parenthesis;
                         break;
                     case ')':
                     case ']':
-                    case '>':
                         if (lastEquals != i - 1 && !inRemovableBlock && !commentLine && !preprocessorSkip)
                             --parenthesis;
+                        inTemplate = false;
+                        break;
+                    case '<':
+                        inTemplate = true; // could be a simple "smaller than", but cancelled at all possibilities that break this assumption
+                        break;
+                    case '?':
+                    case '>':
+                        inTemplate = false;
                         break;
                     case '/':
                         if (!preprocessorSkip) {
