@@ -11,8 +11,10 @@ namespace DocSharp {
     /// The main window of Doc#.
     /// </summary>
     public partial class DocSharp : Form {
+        const string _abstract = "abstract", _static = "static";
+        readonly Font italic, underline;
+
         string lastLoaded = string.Empty;
-        Font italic;
         TreeNode import;
 
         /// <summary>
@@ -64,6 +66,7 @@ namespace DocSharp {
         public DocSharp() {
             InitializeComponent();
             italic = new Font(sourceInfo.Font, FontStyle.Italic);
+            underline = new Font(sourceInfo.Font, FontStyle.Underline);
             LoadRecents();
             expandEnums.Checked = Properties.Settings.Default.ExpandEnums;
             expandStructs.Checked = Properties.Settings.Default.ExpandStructs;
@@ -300,8 +303,10 @@ namespace DocSharp {
                             if (!cutout.Equals(string.Empty)) {
                                 if (newNode == null) {
                                     Utils.MakeNodeName(newNode = node.Nodes.Add(Utils.RemoveParamNames(cutout)), vis);
-                                    if (modifiers.Contains("abstract"))
+                                    if (modifiers.Contains(_abstract))
                                         newNode.NodeFont = italic;
+                                    else if (modifiers.Contains(_static))
+                                        newNode.NodeFont = underline;
                                 }
                                 if (block) {
                                     node = newNode;
