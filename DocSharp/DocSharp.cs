@@ -11,7 +11,6 @@ namespace DocSharp {
     /// The main window of Doc#.
     /// </summary>
     public partial class DocSharp : Form {
-        const string _abstract = "abstract", _static = "static";
         readonly Font italic, underline;
 
         string lastLoaded = string.Empty;
@@ -27,10 +26,10 @@ namespace DocSharp {
             else {
                 int recentPos = newRecents.IndexOf(recent);
                 if (recentPos == -1)
-                    Properties.Settings.Default.Recents = recent + '\n' + newRecents;
+                    Properties.Settings.Default.Recents = string.Format("{0}\n{1}", recent, newRecents);
                 else
-                    Properties.Settings.Default.Recents = recent + '\n' + newRecents.Substring(0, recentPos) +
-                        newRecents.Substring(recentPos + recent.Length + 1);
+                    Properties.Settings.Default.Recents = string.Format("{0}\n{1}{2}", recent, newRecents.Substring(0, recentPos),
+                        newRecents.Substring(recentPos + recent.Length + 1));
             }
             Properties.Settings.Default.Save();
             LoadRecents();
@@ -107,18 +106,18 @@ namespace DocSharp {
             while ((bracketPos = parse.LastIndexOf('(')) != -1) {
                 int endBracket = parse.IndexOf(')', bracketPos + 1);
                 parse = parse.Substring(0, bracketPos) +
-                    (ParseSimpleIf(parse.Substring(bracketPos + 1, endBracket - bracketPos - 1), defineConstants) ? "true" : "false") +
+                    (ParseSimpleIf(parse.Substring(bracketPos + 1, endBracket - bracketPos - 1), defineConstants) ? _true : _false) +
                     parse.Substring(endBracket + 1);
             }
-            string[] split = System.Text.RegularExpressions.Regex.Split(parse, @"\s+");
+            string[] split = System.Text.RegularExpressions.Regex.Split(parse, splitRegex);
             int arrPos = 0, splitEnd = split.Length - 1;
             while (arrPos < splitEnd) {
-                bool first = split[arrPos].Equals("true") || Utils.ArrayContains(defineConstants, split[arrPos]),
-                    second = split[arrPos + 2].Equals("true") || Utils.ArrayContains(defineConstants, split[arrPos + 2]);
-                split[arrPos + 2] = (split[arrPos + 1].Equals("&&") ? first && second : first || second) ? "true" : "false";
+                bool first = split[arrPos].Equals(_true) || Utils.ArrayContains(defineConstants, split[arrPos]),
+                    second = split[arrPos + 2].Equals(_true) || Utils.ArrayContains(defineConstants, split[arrPos + 2]);
+                split[arrPos + 2] = (split[arrPos + 1].Equals(_and) ? first && second : first || second) ? _true : _false;
                 arrPos += 2;
             }
-            return split[arrPos].Equals("true");
+            return split[arrPos].Equals(_true);
         }
 
         /// <summary>
@@ -189,19 +188,19 @@ namespace DocSharp {
 
                             // Remove multiline comments
                             int commentBlockStart;
-                            while ((commentBlockStart = cutout.IndexOf("/*")) != -1) {
-                                int commentEnd = cutout.IndexOf("*/", commentBlockStart + 2) + 2;
+                            while ((commentBlockStart = cutout.IndexOf(_commentBlockStart)) != -1) {
+                                int commentEnd = cutout.IndexOf(_commentBlockEnd, commentBlockStart + 2) + 2;
                                 if (commentEnd == 1)
                                     break;
                                 cutout = cutout.Substring(0, commentBlockStart) + cutout.Substring(commentEnd);
                             }
 
-                            if (cutout.StartsWith("using"))
+                            if (cutout.StartsWith(_using))
                                 break;
 
                             // Property array initialization
                             int nodes = node.Nodes.Count;
-                            if (block && cutout.StartsWith("=") &&
+                            if (block && cutout.StartsWith(_equals) &&
                                 nodes != 0 && ((ElementInfo)node.Nodes[nodes - 1].Tag).Kind == Element.Properties) {
                                 lastRemovableDepth = depth;
                                 inRemovableBlock = true;
@@ -209,21 +208,21 @@ namespace DocSharp {
                                 break;
                             }
 
-                            if (cutout.EndsWith("="))
+                            if (cutout.EndsWith(_equals))
                                 cutout = cutout.Remove(cutout.Length - 2, 1).TrimEnd();
-                            int lambda = cutout.IndexOf("=>");
+                            int lambda = cutout.IndexOf(_lambda);
                             if (lambda >= 0)
                                 cutout = cutout.Substring(0, lambda);
 
                             // Attributes
                             string attributes = string.Empty;
-                            while (cutout.StartsWith("[")) {
-                                int endPos = cutout.IndexOf("]");
+                            while (cutout.StartsWith(_indexStart)) {
+                                int endPos = cutout.IndexOf(_indexEnd);
                                 string between = cutout.Substring(1, endPos - 1);
                                 if (attributes.Equals(string.Empty))
                                     attributes = between;
                                 else
-                                    attributes += ", " + between;
+                                    attributes = string.Format("{0}, {1}", attributes, between);
                                 cutout = cutout.Substring(endPos + 1).TrimStart();
                             }
 
@@ -240,37 +239,37 @@ namespace DocSharp {
 
                             // Visibility
                             Visibility vis = Visibility.Default;
-                            if (Utils.RemoveModifier(ref cutout, "private")) vis = Visibility.Private;
-                            else if (Utils.RemoveModifier(ref cutout, "protected")) vis = Visibility.Protected;
-                            else if (Utils.RemoveModifier(ref cutout, "internal")) vis = Visibility.Internal;
-                            else if (Utils.RemoveModifier(ref cutout, "public")) vis = Visibility.Public;
+                            if (Utils.RemoveModifier(ref cutout, _private)) vis = Visibility.Private;
+                            else if (Utils.RemoveModifier(ref cutout, _protected)) vis = Visibility.Protected;
+                            else if (Utils.RemoveModifier(ref cutout, _internal)) vis = Visibility.Internal;
+                            else if (Utils.RemoveModifier(ref cutout, _public)) vis = Visibility.Public;
 
                             // Modifiers
                             string modifiers = string.Empty;
-                            Utils.RemoveModifier(ref cutout, "partial ");
+                            Utils.RemoveModifier(ref cutout, _partial_);
                             Utils.MoveModifiers(ref cutout, ref modifiers, Constants.modifiers);
 
                             // Type
                             string type = string.Empty;
                             int spaceIndex = -1;
                             while ((spaceIndex = cutout.IndexOf(' ', spaceIndex + 1)) != -1) {
-                                if ((spaceIndex == -1 || !cutout.Substring(0, spaceIndex).Equals("delegate")) && // not just the delegate word
+                                if ((spaceIndex == -1 || !cutout.Substring(0, spaceIndex).Equals(_delegate)) && // not just the delegate word
                                     // not in a template type
                                     (cutout.LastIndexOf('<', spaceIndex) == -1 || cutout.IndexOf('>', spaceIndex) == -1)) {
                                     type = cutout.Substring(0, spaceIndex);
                                     if (type.IndexOf('(') != -1)
-                                        type = "Constructor";
+                                        type = constructor;
                                     else
                                         cutout = cutout.Substring(spaceIndex).TrimStart();
                                     break;
                                 }
                             }
                             Element kind = Element.Variables;
-                            if (type.Equals("class")) kind = Element.Classes;
-                            else if (type.Equals("interface")) kind = Element.Interfaces;
-                            else if (type.Equals("namespace")) kind = Element.Namespaces;
-                            else if (type.Equals("enum")) kind = Element.Enums;
-                            else if (type.Equals("struct")) kind = Element.Structs;
+                            if (type.Equals(_class)) kind = Element.Classes;
+                            else if (type.Equals(_interface)) kind = Element.Interfaces;
+                            else if (type.Equals(_namespace)) kind = Element.Namespaces;
+                            else if (type.Equals(_enum)) kind = Element.Enums;
+                            else if (type.Equals(_struct)) kind = Element.Structs;
                             else if (lambda >= 0) kind = cutout.Contains('(') ? Element.Functions : Element.Properties;
 
                             // Extension
@@ -376,16 +375,16 @@ namespace DocSharp {
                     case '\n':
                         if (preprocessorLine) {
                             string line = code.Substring(lastEnding, i - lastEnding).Trim();
-                            if (line.StartsWith("#define")) {
+                            if (line.StartsWith(_define)) {
                                 string defined = line.Substring(line.IndexOf(' ')).TrimStart();
                                 Array.Resize(ref defineConstants, ++defineCount);
                                 defineConstants[defineCount - 1] = defined;
-                            } else if (line.StartsWith("#if") || line.StartsWith("#elif")) {
+                            } else if (line.StartsWith(_if) || line.StartsWith(_elif)) {
                                 int commentPos;
                                 if ((commentPos = line.IndexOf("//")) != -1)
                                     line = line.Substring(0, commentPos).TrimEnd();
                                 preprocessorSkip = !ParseSimpleIf(line.Substring(line.IndexOf(' ')).TrimStart(), defineConstants);
-                            } else if (line.StartsWith("#endif"))
+                            } else if (line.StartsWith(_endif))
                                 preprocessorSkip = false;
                             preprocessorLine = false;
                         }
@@ -428,7 +427,7 @@ namespace DocSharp {
         /// <summary>
         /// Reload the code with new constants
         /// </summary>
-        private void ReloadConstants_Click(object sender, EventArgs e) {
+        void ReloadConstants_Click(object sender, EventArgs e) {
             LoadFrom(lastLoaded, defines.Text);
         }
 
@@ -466,7 +465,7 @@ namespace DocSharp {
                 Utils.AppendIfExists(ref info, "Default value", tag.DefaultValue);
                 Utils.AppendIfExists(ref info, "Extends", tag.Extends);
                 if (tag.Summary.Length != 0)
-                    info += "\n\n" + Utils.QuickSummary(tag.Summary);
+                    info = string.Format("{0}\n\n{1}", info, Utils.QuickSummary(tag.Summary));
             }
             infoLabel.Text = info;
         }
@@ -499,7 +498,7 @@ namespace DocSharp {
         /// <summary>
         /// Start documentation generation process.
         /// </summary>
-        private void GenerateButton_Click(object sender, EventArgs e) {
+        void GenerateButton_Click(object sender, EventArgs e) {
             if (import == null)
                 return;
 
@@ -508,8 +507,8 @@ namespace DocSharp {
             if (folderDialog.ShowDialog() == DialogResult.OK) {
                 DirectoryInfo dir = new DirectoryInfo(folderDialog.SelectedPath);
                 if ((dir.GetDirectories().Length == 0 && dir.GetDirectories().Length == 0) ||
-                    MessageBox.Show("The folder (" + folderDialog.SelectedPath + ") is not empty. Continue generation anyway?", "Warning",
-                    MessageBoxButtons.YesNo) == DialogResult.Yes) {
+                    MessageBox.Show(string.Format("The folder ({0}) is not empty. Continue generation anyway?", folderDialog.SelectedPath),
+                        "Warning", MessageBoxButtons.YesNo) == DialogResult.Yes) {
                     Design.Extension = extension.Text.Equals(string.Empty) ? "html" : extension.Text;
                     Design.ExportAttributes = exportAttributes.Checked;
                     Design.GenerateDocumentation(import, folderDialog.SelectedPath);
@@ -523,9 +522,17 @@ namespace DocSharp {
         /// <summary>
         /// Show "About".
         /// </summary>
-        private void AboutToolStripMenuItem_Click(object sender, EventArgs e) {
-            MessageBox.Show("Doc# v" + FileVersionInfo.GetVersionInfo(Assembly.GetExecutingAssembly().Location).FileVersion + " by VoidX\n" +
-                "http://www.voidx.tk/", "About");
+        void AboutToolStripMenuItem_Click(object sender, EventArgs e) {
+            MessageBox.Show(string.Format("Doc# v{0} by VoidX\n{1}",
+                FileVersionInfo.GetVersionInfo(Assembly.GetExecutingAssembly().Location).FileVersion, "http://en.sbence.hu/"), "About");
         }
+
+        const string splitRegex = @"\s+", _commentBlockStart = "/*", _commentBlockEnd = "*/", _indexStart = "[", _indexEnd = "]";
+        const string _public = "public", _internal = "internal", _protected = "protected", _private = "private";
+        const string _abstract = "abstract", _partial_ = "partial ", _static = "static", _using = "using";
+        const string _class = "class", _enum = "enum", _interface = "interface", _namespace = "namespace", _struct = "struct";
+        const string constructor = "Constructor", _delegate = "delegate";
+        const string _true = "true", _false = "false", _and = "&&", _equals = "=", _lambda = "=>";
+        const string _define = "#define", _if = "#if", _elif = "#elif", _endif = "#endif";
     }
 }
