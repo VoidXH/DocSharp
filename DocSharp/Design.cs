@@ -165,7 +165,7 @@ namespace DocSharp {
             IEnumerator enumer = nodes.GetEnumerator();
             while (enumer.MoveNext()) {
                 TreeNode current = (TreeNode)enumer.Current;
-                bool isStatic = ((ElementInfo)current.Tag).Modifiers.Contains(DocSharp._static);
+                bool isStatic = ((ElementInfo)current.Tag).Modifiers.Contains(Parser._static);
                 outs[(int)((ElementInfo)current.Tag).Vis - 1 + (isStatic ? (int)Visibility.Public : 0)].Add(current);
             }
 
