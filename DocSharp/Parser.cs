@@ -216,7 +216,7 @@ namespace DocSharp {
                             int spaceIndex = -1;
                             while ((spaceIndex = cutout.IndexOf(' ', spaceIndex + 1)) != -1) {
                                 if ((spaceIndex == -1 || !cutout.Substring(0, spaceIndex).Equals(_delegate)) && // not just the delegate word
-                                                                                                                // not in a template type
+                                    // not in a template type
                                     (cutout.LastIndexOf('<', spaceIndex) == -1 || cutout.IndexOf('>', spaceIndex) == -1)) {
                                     type = cutout.Substring(0, spaceIndex);
                                     if (type.IndexOf('(') != -1)
@@ -284,9 +284,13 @@ namespace DocSharp {
                                     tag.Summary += summary;
                                     newNode.Tag = tag;
                                 } else if (type.Equals(string.Empty) && newNode.Parent.Nodes.Count > 1) { // "int a, b;" case, copy tags
-                                    ElementInfo inherited = (ElementInfo)newNode.Parent.Nodes[newNode.Parent.Nodes.Count - 2].Tag;
+                                    TreeNode lastNode = newNode.Parent.Nodes[newNode.Parent.Nodes.Count - 2];
+                                    newNode.NodeFont = lastNode.NodeFont;
+                                    ElementInfo inherited = (ElementInfo)lastNode.Tag;
+                                    inherited.DefaultValue = defaultValue;
                                     inherited.Name = cutout;
-                                    inherited.Summary = summary;
+                                    if (!string.IsNullOrEmpty(summary))
+                                        inherited.Summary = summary;
                                     newNode.Tag = inherited;
                                 } else
                                     newNode.Tag = new ElementInfo {
