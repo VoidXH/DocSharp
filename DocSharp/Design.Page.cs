@@ -24,6 +24,11 @@
             firstColumnClass = "t2",
             evenRowClass = "sr";
 
+        // Class name use helpers.
+        const string
+            firstColumnClassTag = " class=\"" + firstColumnClass + "\"",
+            evenRowClassTag = " class=\"" + evenRowClass + "\"";
+
         /// <summary>
         /// Parent menu element.
         /// </summary>

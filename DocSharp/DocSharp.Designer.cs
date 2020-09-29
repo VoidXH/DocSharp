@@ -33,17 +33,18 @@
             this.sourceInfo = new System.Windows.Forms.TreeView();
             this.mainSplit = new System.Windows.Forms.SplitContainer();
             this.leftSplit = new System.Windows.Forms.SplitContainer();
+            this.definesBox = new System.Windows.Forms.GroupBox();
+            this.defines = new System.Windows.Forms.TextBox();
             this.currentDefines = new System.Windows.Forms.Label();
             this.reloadConstants = new System.Windows.Forms.Button();
-            this.defines = new System.Windows.Forms.TextBox();
-            this.phpFillers = new System.Windows.Forms.CheckBox();
-            this.extension = new System.Windows.Forms.ComboBox();
             this.extensionLabel = new System.Windows.Forms.Label();
+            this.phpFillers = new System.Windows.Forms.CheckBox();
             this.exportAttributes = new System.Windows.Forms.CheckBox();
+            this.generateButton = new System.Windows.Forms.Button();
             this.expandStructs = new System.Windows.Forms.CheckBox();
+            this.extension = new System.Windows.Forms.ComboBox();
             this.structureLabel = new System.Windows.Forms.Label();
             this.expandEnums = new System.Windows.Forms.CheckBox();
-            this.generateButton = new System.Windows.Forms.Button();
             this.settingsLabel = new System.Windows.Forms.Label();
             this.visibilityLabel = new System.Windows.Forms.Label();
             this.exportPrivate = new System.Windows.Forms.CheckBox();
@@ -51,7 +52,9 @@
             this.exportInternal = new System.Windows.Forms.CheckBox();
             this.exportPublic = new System.Windows.Forms.CheckBox();
             this.infoLabel = new System.Windows.Forms.Label();
-            this.definesBox = new System.Windows.Forms.GroupBox();
+            this.statusbar = new System.Windows.Forms.StatusStrip();
+            this.progressBar = new System.Windows.Forms.ToolStripProgressBar();
+            this.progressLabel = new System.Windows.Forms.ToolStripStatusLabel();
             this.menu.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.mainSplit)).BeginInit();
             this.mainSplit.Panel1.SuspendLayout();
@@ -62,6 +65,7 @@
             this.leftSplit.Panel2.SuspendLayout();
             this.leftSplit.SuspendLayout();
             this.definesBox.SuspendLayout();
+            this.statusbar.SuspendLayout();
             this.SuspendLayout();
             // 
             // menu
@@ -177,6 +181,26 @@
             this.leftSplit.SplitterDistance = 285;
             this.leftSplit.TabIndex = 0;
             // 
+            // definesBox
+            // 
+            this.definesBox.Controls.Add(this.defines);
+            this.definesBox.Controls.Add(this.currentDefines);
+            this.definesBox.Controls.Add(this.reloadConstants);
+            this.definesBox.Location = new System.Drawing.Point(3, 148);
+            this.definesBox.Name = "definesBox";
+            this.definesBox.Size = new System.Drawing.Size(294, 74);
+            this.definesBox.TabIndex = 1134;
+            this.definesBox.TabStop = false;
+            this.definesBox.Text = "Define constants";
+            // 
+            // defines
+            // 
+            this.defines.Location = new System.Drawing.Point(6, 19);
+            this.defines.Name = "defines";
+            this.defines.Size = new System.Drawing.Size(282, 20);
+            this.defines.TabIndex = 1;
+            this.defines.Text = "RELEASE; MASTER";
+            // 
             // currentDefines
             // 
             this.currentDefines.Location = new System.Drawing.Point(9, 50);
@@ -195,13 +219,14 @@
             this.reloadConstants.UseVisualStyleBackColor = true;
             this.reloadConstants.Click += new System.EventHandler(this.ReloadConstants_Click);
             // 
-            // defines
+            // extensionLabel
             // 
-            this.defines.Location = new System.Drawing.Point(6, 19);
-            this.defines.Name = "defines";
-            this.defines.Size = new System.Drawing.Size(282, 20);
-            this.defines.TabIndex = 1;
-            this.defines.Text = "RELEASE; MASTER";
+            this.extensionLabel.AutoSize = true;
+            this.extensionLabel.Location = new System.Drawing.Point(12, 235);
+            this.extensionLabel.Name = "extensionLabel";
+            this.extensionLabel.Size = new System.Drawing.Size(74, 13);
+            this.extensionLabel.TabIndex = 11;
+            this.extensionLabel.Text = "File extension:";
             // 
             // phpFillers
             // 
@@ -212,6 +237,38 @@
             this.phpFillers.TabIndex = 1137;
             this.phpFillers.Text = "index.php fillers";
             this.phpFillers.UseVisualStyleBackColor = true;
+            // 
+            // exportAttributes
+            // 
+            this.exportAttributes.AutoSize = true;
+            this.exportAttributes.Location = new System.Drawing.Point(148, 102);
+            this.exportAttributes.Name = "exportAttributes";
+            this.exportAttributes.Size = new System.Drawing.Size(102, 17);
+            this.exportAttributes.TabIndex = 6;
+            this.exportAttributes.Text = "Export attributes";
+            this.exportAttributes.UseVisualStyleBackColor = true;
+            // 
+            // generateButton
+            // 
+            this.generateButton.Location = new System.Drawing.Point(197, 259);
+            this.generateButton.Name = "generateButton";
+            this.generateButton.Size = new System.Drawing.Size(100, 23);
+            this.generateButton.TabIndex = 1138;
+            this.generateButton.Text = "Generate";
+            this.generateButton.UseVisualStyleBackColor = true;
+            this.generateButton.Click += new System.EventHandler(this.GenerateButton_Click);
+            // 
+            // expandStructs
+            // 
+            this.expandStructs.AutoSize = true;
+            this.expandStructs.Checked = true;
+            this.expandStructs.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.expandStructs.Location = new System.Drawing.Point(148, 79);
+            this.expandStructs.Name = "expandStructs";
+            this.expandStructs.Size = new System.Drawing.Size(96, 17);
+            this.expandStructs.TabIndex = 5;
+            this.expandStructs.Text = "Expand structs";
+            this.expandStructs.UseVisualStyleBackColor = true;
             // 
             // extension
             // 
@@ -225,37 +282,6 @@
             this.extension.Size = new System.Drawing.Size(121, 21);
             this.extension.TabIndex = 1136;
             this.extension.Text = "html";
-            // 
-            // extensionLabel
-            // 
-            this.extensionLabel.AutoSize = true;
-            this.extensionLabel.Location = new System.Drawing.Point(12, 235);
-            this.extensionLabel.Name = "extensionLabel";
-            this.extensionLabel.Size = new System.Drawing.Size(74, 13);
-            this.extensionLabel.TabIndex = 11;
-            this.extensionLabel.Text = "File extension:";
-            // 
-            // exportAttributes
-            // 
-            this.exportAttributes.AutoSize = true;
-            this.exportAttributes.Location = new System.Drawing.Point(148, 102);
-            this.exportAttributes.Name = "exportAttributes";
-            this.exportAttributes.Size = new System.Drawing.Size(102, 17);
-            this.exportAttributes.TabIndex = 6;
-            this.exportAttributes.Text = "Export attributes";
-            this.exportAttributes.UseVisualStyleBackColor = true;
-            // 
-            // expandStructs
-            // 
-            this.expandStructs.AutoSize = true;
-            this.expandStructs.Checked = true;
-            this.expandStructs.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.expandStructs.Location = new System.Drawing.Point(148, 79);
-            this.expandStructs.Name = "expandStructs";
-            this.expandStructs.Size = new System.Drawing.Size(96, 17);
-            this.expandStructs.TabIndex = 5;
-            this.expandStructs.Text = "Expand structs";
-            this.expandStructs.UseVisualStyleBackColor = true;
             // 
             // structureLabel
             // 
@@ -277,16 +303,6 @@
             this.expandEnums.TabIndex = 4;
             this.expandEnums.Text = "Expand enums";
             this.expandEnums.UseVisualStyleBackColor = true;
-            // 
-            // generateButton
-            // 
-            this.generateButton.Location = new System.Drawing.Point(197, 259);
-            this.generateButton.Name = "generateButton";
-            this.generateButton.Size = new System.Drawing.Size(100, 23);
-            this.generateButton.TabIndex = 1138;
-            this.generateButton.Text = "Generate";
-            this.generateButton.UseVisualStyleBackColor = true;
-            this.generateButton.Click += new System.EventHandler(this.GenerateButton_Click);
             // 
             // settingsLabel
             // 
@@ -361,23 +377,34 @@
             this.infoLabel.Size = new System.Drawing.Size(0, 13);
             this.infoLabel.TabIndex = 0;
             // 
-            // definesBox
+            // statusbar
             // 
-            this.definesBox.Controls.Add(this.defines);
-            this.definesBox.Controls.Add(this.currentDefines);
-            this.definesBox.Controls.Add(this.reloadConstants);
-            this.definesBox.Location = new System.Drawing.Point(3, 148);
-            this.definesBox.Name = "definesBox";
-            this.definesBox.Size = new System.Drawing.Size(294, 74);
-            this.definesBox.TabIndex = 1134;
-            this.definesBox.TabStop = false;
-            this.definesBox.Text = "Define constants";
+            this.statusbar.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.progressBar,
+            this.progressLabel});
+            this.statusbar.Location = new System.Drawing.Point(0, 479);
+            this.statusbar.Name = "statusbar";
+            this.statusbar.Size = new System.Drawing.Size(824, 22);
+            this.statusbar.TabIndex = 3;
+            this.statusbar.Text = "statusStrip1";
+            // 
+            // progressBar
+            // 
+            this.progressBar.Name = "progressBar";
+            this.progressBar.Size = new System.Drawing.Size(100, 16);
+            this.progressBar.Step = 1;
+            // 
+            // progressLabel
+            // 
+            this.progressLabel.Name = "progressLabel";
+            this.progressLabel.Size = new System.Drawing.Size(0, 17);
             // 
             // DocSharp
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(824, 501);
+            this.Controls.Add(this.statusbar);
             this.Controls.Add(this.mainSplit);
             this.Controls.Add(this.menu);
             this.MainMenuStrip = this.menu;
@@ -398,6 +425,8 @@
             this.leftSplit.ResumeLayout(false);
             this.definesBox.ResumeLayout(false);
             this.definesBox.PerformLayout();
+            this.statusbar.ResumeLayout(false);
+            this.statusbar.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -434,6 +463,9 @@
         private System.Windows.Forms.Button reloadConstants;
         private System.Windows.Forms.Label currentDefines;
         private System.Windows.Forms.GroupBox definesBox;
+        private System.Windows.Forms.StatusStrip statusbar;
+        private System.Windows.Forms.ToolStripProgressBar progressBar;
+        private System.Windows.Forms.ToolStripStatusLabel progressLabel;
     }
 }
 

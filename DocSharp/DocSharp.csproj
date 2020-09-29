@@ -71,8 +71,10 @@
     <Compile Include="DocSharp.Designer.cs">
       <DependentUpon>DocSharp.cs</DependentUpon>
     </Compile>
+    <Compile Include="Exporter.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="TaskEngine.cs" />
     <Compile Include="Tests.cs" />
     <Compile Include="Utils.cs" />
     <EmbeddedResource Include="DocSharp.resx">

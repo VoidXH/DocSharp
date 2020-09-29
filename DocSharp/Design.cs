@@ -20,6 +20,8 @@ namespace DocSharp {
         /// </summary>
         public static string Extension = "html";
 
+        static Exporter exporter;
+
         /// <summary>
         /// Create documentation for a single tree node.
         /// </summary>
@@ -29,6 +31,8 @@ namespace DocSharp {
         static void GenerateDocumentation(TreeNode node, string path, int depth) {
             Directory.CreateDirectory(path);
             GeneratePage(path + "\\index." + Extension, node, depth);
+            if (exporter != null)
+                exporter.Ping(node);
             foreach (TreeNode child in node.Nodes) {
                 if (child.Tag == null || ((ElementInfo)child.Tag).Exportable) {
                     if (((ElementInfo)child.Tag).Kind >= Element.Functions)
@@ -44,8 +48,10 @@ namespace DocSharp {
         /// </summary>
         /// <param name="node">Program tree</param>
         /// <param name="path">Path to the documentation</param>
-        public static void GenerateDocumentation(TreeNode node, string path) {
+        /// <param name="exporter">Async export handler</param>
+        public static void GenerateDocumentation(TreeNode node, string path, Exporter exporter = null) {
             File.WriteAllText(path + '\\' + stylesheet, style);
+            Design.exporter = exporter;
             GenerateDocumentation(node, path, 0);
         }
 
@@ -116,8 +122,8 @@ namespace DocSharp {
         /// <param name="description">Value or description of <paramref name="entry"/></param>
         static void BlockAppend(StringBuilder builder, string entry, string description) {
             builder.Append(contentEntry.Replace(elementMarker, entry).Replace(contentMarker, description)
-                    .Replace(subelementMarker, evenRow ? " class=\"" + evenRowClass + "\"" : string.Empty))
-                    .Replace(cssMarker, firstEntry ? " class=\"" + firstColumnClass + "\"" : string.Empty);
+                    .Replace(subelementMarker, evenRow ? evenRowClassTag : string.Empty))
+                    .Replace(cssMarker, firstEntry ? firstColumnClassTag : string.Empty);
             firstEntry = false;
             evenRow = !evenRow;
         }
@@ -159,7 +165,7 @@ namespace DocSharp {
             IEnumerator enumer = nodes.GetEnumerator();
             while (enumer.MoveNext()) {
                 TreeNode current = (TreeNode)enumer.Current;
-                bool isStatic = ((ElementInfo)current.Tag).Modifiers.Contains("static");
+                bool isStatic = ((ElementInfo)current.Tag).Modifiers.Contains(DocSharp._static);
                 outs[(int)((ElementInfo)current.Tag).Vis - 1 + (isStatic ? (int)Visibility.Public : 0)].Add(current);
             }
 
@@ -167,7 +173,8 @@ namespace DocSharp {
             StringBuilder output = new StringBuilder();
             for (int i = (int)Visibility.Public - 1; i > 0; --i) {
                 output.Append(ContentBlock(outs[i], ((Visibility)(i + 1)).ToString() + titlePostfix));
-                output.Append(ContentBlock(outs[i + (int)Visibility.Public], ((Visibility)(i + 1)).ToString() + " static" + titlePostfix));
+                output.Append(ContentBlock(outs[i + (int)Visibility.Public],
+                    string.Format("{0} static{1}", ((Visibility)(i + 1)).ToString(), titlePostfix)));
             }
 
             return output.ToString();
@@ -225,7 +232,8 @@ namespace DocSharp {
                                 if (cut.EndsWith(parameters[0])) {
                                     cut = cut.Substring(0, cut.LastIndexOf(parameters[0]));
                                     string trim = cut.Trim();
-                                    if (cut.Length != trim.Length) { // if it doesn't end with a whitespace, it's another param that ends the same way
+                                    // if it doesn't end with a whitespace, it's another param that ends the same way
+                                    if (cut.Length != trim.Length) {
                                         paramType = cut.Trim();
                                         break;
                                     }

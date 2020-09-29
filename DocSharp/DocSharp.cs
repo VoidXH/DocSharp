@@ -12,6 +12,7 @@ namespace DocSharp {
     /// </summary>
     public partial class DocSharp : Form {
         readonly Font italic, underline;
+        readonly TaskEngine task;
 
         string lastLoaded = string.Empty;
         TreeNode import;
@@ -64,6 +65,8 @@ namespace DocSharp {
         /// </summary>
         public DocSharp() {
             InitializeComponent();
+            task = new TaskEngine();
+            task.SetProgressReporting(progressBar, progressLabel);
             italic = new Font(sourceInfo.Font, FontStyle.Italic);
             underline = new Font(sourceInfo.Font, FontStyle.Underline);
             LoadRecents();
@@ -471,39 +474,17 @@ namespace DocSharp {
         }
 
         /// <summary>
-        /// Set the exportability of the selected and all child nodes based on user preferences.
-        /// </summary>
-        /// <param name="node">Root node</param>
-        void SetExportability(TreeNode node) {
-            foreach (TreeNode child in node.Nodes) {
-                ElementInfo tag = ((ElementInfo)child.Tag);
-                if (tag.Vis == Visibility.Default || (tag.Vis == Visibility.Public && exportPublic.Checked) ||
-                    (tag.Vis == Visibility.Internal && exportInternal.Checked) || (tag.Vis == Visibility.Protected && exportProtected.Checked) ||
-                    (tag.Vis == Visibility.Private && exportPrivate.Checked))
-                    tag.Exportable = true;
-                if (tag.Exportable) {
-                    child.Tag = tag;
-                    if (tag.Kind == Element.Enums) {
-                        if (expandEnums.Checked)
-                            SetExportability(child);
-                    } else if (tag.Kind == Element.Structs) {
-                        if (expandStructs.Checked)
-                            SetExportability(child);
-                    } else
-                        SetExportability(child);
-                }
-            }
-        }
-
-        /// <summary>
         /// Start documentation generation process.
         /// </summary>
         void GenerateButton_Click(object sender, EventArgs e) {
-            if (import == null)
+            if (import == null) {
+                MessageBox.Show("Please load a source first.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
-
-            SetExportability(import);
-
+            }
+            if (task.IsOperationRunning) {
+                MessageBox.Show("Another operation is already running.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
             if (folderDialog.ShowDialog() == DialogResult.OK) {
                 DirectoryInfo dir = new DirectoryInfo(folderDialog.SelectedPath);
                 if ((dir.GetDirectories().Length == 0 && dir.GetDirectories().Length == 0) ||
@@ -511,10 +492,16 @@ namespace DocSharp {
                         "Warning", MessageBoxButtons.YesNo) == DialogResult.Yes) {
                     Design.Extension = extension.Text.Equals(string.Empty) ? "html" : extension.Text;
                     Design.ExportAttributes = exportAttributes.Checked;
-                    Design.GenerateDocumentation(import, folderDialog.SelectedPath);
-                    Process.Start(folderDialog.SelectedPath);
-                    if (phpFillers.Checked && !extension.Text.Equals("php"))
-                        Utils.FillWithPHP(new DirectoryInfo(folderDialog.SelectedPath));
+                    Exporter exporter = new Exporter(task) {
+                        GenerateFillers = phpFillers.Checked && !extension.Text.Equals("php"),
+                        ExportPublic = exportPublic.Checked,
+                        ExportInternal = exportInternal.Checked,
+                        ExportProtected = exportProtected.Checked,
+                        ExportPrivate = exportPrivate.Checked,
+                        ExpandEnums = expandEnums.Checked,
+                        ExpandStructs = expandStructs.Checked
+                    };
+                    exporter.GenerateDocumentation(import, folderDialog.SelectedPath);
                 }
             }
         }
@@ -529,7 +516,7 @@ namespace DocSharp {
 
         const string splitRegex = @"\s+", _commentBlockStart = "/*", _commentBlockEnd = "*/", _indexStart = "[", _indexEnd = "]";
         const string _public = "public", _internal = "internal", _protected = "protected", _private = "private";
-        const string _abstract = "abstract", _partial_ = "partial ", _static = "static", _using = "using";
+        internal const string _abstract = "abstract", _partial_ = "partial ", _static = "static", _using = "using";
         const string _class = "class", _enum = "enum", _interface = "interface", _namespace = "namespace", _struct = "struct";
         const string constructor = "Constructor", _delegate = "delegate";
         const string _true = "true", _false = "false", _and = "&&", _equals = "=", _lambda = "=>";
