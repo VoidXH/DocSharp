@@ -138,8 +138,7 @@ namespace DocSharp {
             if (nodes.Count == 0)
                 return string.Empty;
             nodes.Sort((TreeNode a, TreeNode b) => { return a.Name.CompareTo(b.Name); });
-            StringBuilder block = new StringBuilder("<h1>").Append(title).Append(@"</h1>
-<table>");
+            StringBuilder block = new StringBuilder("<h1>").Append(title).Append("</h1><table>");
             IEnumerator enumer = nodes.GetEnumerator();
             BlockStart();
             while (enumer.MoveNext()) {
@@ -148,8 +147,7 @@ namespace DocSharp {
                     .Append("\">").Append(((ElementInfo)node.Tag).Name).Append("</a>");
                 BlockAppend(block, link.ToString(), Utils.QuickSummary(((ElementInfo)node.Tag).Summary, node));
             }
-            return block.Append(@"
-</table>").ToString();
+            return block.Append("</table>").ToString();
         }
 
         /// <summary>
@@ -200,7 +198,7 @@ namespace DocSharp {
                 output.Append(((ElementInfo)node.Tag).Type).Append(' ').Append(((ElementInfo)node.Tag).Name);
             else
                 output.Append(node.Name);
-            output.AppendLine("</h1>");
+            output.Append("</h1>");
 
             if (node.Tag != null) {
                 ElementInfo tag = (ElementInfo)node.Tag;
@@ -208,7 +206,7 @@ namespace DocSharp {
                 // Summary block
                 string summary = tag.Summary;
                 BlockStart();
-                output.AppendLine(Utils.RemoveTag(ref summary, "summary", node.Nodes.Count != 0 ? node.Nodes[0] : node)).Append("<table>");
+                output.Append(Utils.RemoveTag(ref summary, "summary", node.Nodes.Count != 0 ? node.Nodes[0] : node)).Append("<table>");
                 if (ExportAttributes && !tag.Attributes.Equals(string.Empty)) BlockAppend(output, "Attributes", tag.Attributes);
                 if (tag.Vis != Visibility.Default) BlockAppend(output, "Visibility", tag.Vis.ToString());
                 if (tag.Kind == Element.Properties) {
@@ -220,10 +218,10 @@ namespace DocSharp {
                 if (!tag.DefaultValue.Equals(string.Empty)) BlockAppend(output, "Default value", tag.DefaultValue);
                 string returns = Utils.RemoveTag(ref summary, "returns", node);
                 if (!returns.Equals(string.Empty)) BlockAppend(output, "Returns", returns);
-                output.AppendLine("</table>");
+                output.Append("</table>");
 
                 if (summary.Contains("</param>")) {
-                    output.AppendLine("<h1>Parameters</h1>").AppendLine("<table>");
+                    output.Append("<h1>Parameters</h1>").Append("<table>");
                     BlockStart();
                     string[] definedParams = tag.Name.Substring(tag.Name.IndexOf('(') + 1).Split(',', ')');
                     string[] parameters;
@@ -248,7 +246,7 @@ namespace DocSharp {
                         }
                         BlockAppend(output, paramType + " <b>" + parameters[0] + "</b>", parameters[1]);
                     }
-                    output.AppendLine("</table>");
+                    output.Append("</table>");
                 }
             }
 

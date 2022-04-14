@@ -32,50 +32,44 @@
         /// <summary>
         /// Parent menu element.
         /// </summary>
-        const string menuElement = @"
-<h2>" + indentMarker + "<a href=\"" + linkMarker + "\">" + elementMarker + "</a></h2>";
+        const string menuElement = "<h2>" + indentMarker + "<a href=\"" + linkMarker + "\">" + elementMarker + "</a></h2>";
         /// <summary>
         /// Menu element on the same level as the opened module.
         /// </summary>
-        const string menuSubelement = @"
-<h3>" + indentMarker + "<a href=\"" + linkMarker + "\">" + elementMarker + "</a></h3>";
+        const string menuSubelement = "<h3>" + indentMarker + "<a href=\"" + linkMarker + "\">" + elementMarker + "</a></h3>";
 
         /// <summary>
         /// Boilerplate of a page.
         /// </summary>
-        const string baseBuild = @"<html>
-    <head>
-        <title>" + titleMarker + @"</title>
-        <link rel=""stylesheet"" href=""" + cssMarker + @""" type=""text/css"">
-      </head>
-    <body>
-        <table class=""" + mainTableClass + @""">
-            <tr>
-                <td class=""" + menuTdClass + @""">
-                    " + menuMarker + @"
-                </td>
-                <td>
-                    " + contentMarker + @"
-                </td>
-            </tr>
-        </table>
-    </body>
-</html>";
+        const string baseBuild =
+            "<html>" +
+                "<head>" +
+                    "<title>" + titleMarker + "</title><link rel=\"stylesheet\" href=\"" + cssMarker + "\" type=\"text/css\">" +
+                "</head>" +
+                "<body>" +
+                    "<table class=\"" + mainTableClass + "\">" +
+                        "<tr>" +
+                            "<td class=\"" + menuTdClass + "\">" + menuMarker + "</td>" +
+                            "<td>" + contentMarker + "</td>" +
+                        "</tr>" +
+                    "</table>" +
+                "</body>" +
+            "</html>";
 
         /// <summary>
         /// List row (e.g. for parameters).
         /// </summary>
-        const string contentEntry = @"
-    <tr" + subelementMarker + @">
-        <td" + cssMarker + ">" + elementMarker + @"</td>
-        <td>" + contentMarker + @"</td>
-    </tr>";
+        const string contentEntry =
+            "<tr" + subelementMarker + ">" +
+                "<td" + cssMarker + ">" + elementMarker + "</td>" +
+                "<td>" + contentMarker + "</td>" +
+            "</tr>";
 
         /// <summary>
         /// Stylesheet of the documentation.
         /// </summary>
         const string style =
-@"." + mainTableClass + @" { height: 100%; }
+"." + mainTableClass + @" { height: 100%; }
 ." + evenRowClass + @" { background-color: #EEEEEE; }
 ." + menuTdClass + @" { width: 250px; }
 ." + firstColumnClass + @" { width: 350px; }
