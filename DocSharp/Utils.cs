@@ -23,7 +23,7 @@ namespace DocSharp {
     struct ElementInfo {
         public bool Exportable;
         public string Name, Attributes, DefaultValue, Extends, Modifiers, Summary, Type;
-        public Visibility Vis;
+        public Visibility Vis, Getter, Setter;
         public Element Kind;
     }
 
@@ -52,13 +52,11 @@ namespace DocSharp {
         /// <param name="target">Output</param>
         /// <param name="name">Prefix separated with ": "</param>
         /// <param name="value">Value of the parameter called <paramref name="name"/></param>
-        public static void AppendIfExists(ref string target, string name, string value) {
+        public static void AppendIfExists(StringBuilder target, string name, string value) {
             if (value.Length != 0) {
-                StringBuilder pass = new StringBuilder();
                 if (target.Length != 0)
-                    pass.Append('\n');
-                pass.Append(name).Append(": ").Append(value);
-                target += pass.ToString();
+                    target.AppendLine();
+                target.Append(name).Append(": ").Append(value);
             }
         }
 

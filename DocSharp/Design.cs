@@ -204,11 +204,17 @@ namespace DocSharp {
 
             if (node.Tag != null) {
                 ElementInfo tag = (ElementInfo)node.Tag;
+
+                // Summary block
                 string summary = tag.Summary;
                 BlockStart();
                 output.AppendLine(Utils.RemoveTag(ref summary, "summary", node.Nodes.Count != 0 ? node.Nodes[0] : node)).Append("<table>");
                 if (ExportAttributes && !tag.Attributes.Equals(string.Empty)) BlockAppend(output, "Attributes", tag.Attributes);
                 if (tag.Vis != Visibility.Default) BlockAppend(output, "Visibility", tag.Vis.ToString());
+                if (tag.Kind == Element.Properties) {
+                    BlockAppend(output, "Getter", tag.Getter != Visibility.Default ? tag.Getter.ToString() : "No getter");
+                    BlockAppend(output, "Setter", tag.Setter != Visibility.Default ? tag.Setter.ToString() : "No setter");
+                }
                 if (!tag.Modifiers.Equals(string.Empty)) BlockAppend(output, "Modifiers", tag.Modifiers);
                 if (!tag.Extends.Equals(string.Empty)) BlockAppend(output, "Extends", tag.Extends);
                 if (!tag.DefaultValue.Equals(string.Empty)) BlockAppend(output, "Default value", tag.DefaultValue);
