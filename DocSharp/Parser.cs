@@ -320,7 +320,7 @@ namespace DocSharp {
                                         DefaultValue = defaultValue,
                                         Extends = extends,
                                         Modifiers = modifiers.Trim(),
-                                        Summary = summary,
+                                        Summary = summary.TrimStart(),
                                         Type = type,
                                         Vis = vis,
                                         Kind = kind
