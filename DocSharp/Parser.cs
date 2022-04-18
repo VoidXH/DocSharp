@@ -44,6 +44,8 @@ namespace DocSharp {
             }
             string[] files = Directory.GetFiles(path, "*.cs", SearchOption.AllDirectories);
             for (int i = 0; i < files.Length; ++i) {
+                if (files[i].Contains("\\obj\\"))
+                    continue;
                 if (engine != null) {
                     engine.UpdateProgressBar(i * 100 / files.Length);
                     engine.UpdateStatusLazy(string.Format("Parsing {0} ({1}%)...", Path.GetFileName(files[i]),
