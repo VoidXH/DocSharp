@@ -43,21 +43,21 @@ namespace DocSharp {
                 engine.UpdateStatus("Searching for .cs files...");
             }
             string[] files = Directory.GetFiles(path, "*.cs", SearchOption.AllDirectories);
+            int loc = 0;
             for (int i = 0; i < files.Length; ++i) {
                 if (files[i].Contains("\\obj\\"))
                     continue;
                 if (engine != null) {
                     engine.UpdateProgressBar(i * 100 / files.Length);
-                    engine.UpdateStatusLazy(string.Format("Parsing {0} ({1}%)...", Path.GetFileName(files[i]),
-                        (i * 100f / files.Length).ToString("0.00")));
+                    engine.UpdateStatusLazy($"Parsing {Path.GetFileName(files[i])} ({i * 100f / files.Length:0.00}%)...");
                 }
                 string text = File.ReadAllText(files[i]);
-                ParseBlock(text, root);
+                loc += ParseBlock(text, root);
             }
             sourceInfo.Invoke((MethodInvoker)delegate { sourceInfo.EndUpdate(); });
             if (engine != null) {
                 engine.UpdateProgressBar(100);
-                engine.UpdateStatus("Finished!");
+                engine.UpdateStatus($"Finished parsing {loc} lines of code!");
             }
         }
 
@@ -90,9 +90,10 @@ namespace DocSharp {
         /// </summary>
         /// <param name="code">Code</param>
         /// <param name="node">Root node</param>
-        void ParseBlock(string code, TreeNode node) {
+        /// <returns>Lines of code parsed.</returns>
+        int ParseBlock(string code, TreeNode node) {
             int codeLen = code.Length, lastEnding = 0, lastSlash = -2, lastEquals = -2,
-                parenthesis = 0, depth = 0, lastRemovableDepth = 0;
+                parenthesis = 0, depth = 0, lastRemovableDepth = 0, loc = 0;
             bool commentLine = false, inRemovableBlock = false, inString = false,
                 preprocessorLine = false, preprocessorSkip = false,
                 summaryLine = false, inTemplate = false, propertyArray = false;
@@ -397,11 +398,13 @@ namespace DocSharp {
                             summary += code.Substring(lastSlash + 1, i - lastSlash - 1).Trim() + '\n';
                             summaryLine = false;
                         }
+                        ++loc;
                         break;
                     default:
                         break;
                 }
             }
+            return loc;
         }
 
         const string splitRegex = @"\s+", _commentBlockStart = "/*", _commentBlockEnd = "*/", _indexStart = "[", _indexEnd = "]";
