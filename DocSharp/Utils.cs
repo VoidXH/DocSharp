@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -25,6 +26,7 @@ namespace DocSharp {
         public string Name, Attributes, DefaultValue, Extends, Modifiers, Summary, Type;
         public Visibility Vis, Getter, Setter;
         public Element Kind;
+        public ExportInfo Export;
     }
 
     static class Constants {
@@ -37,7 +39,8 @@ namespace DocSharp {
         };
 
         /// <summary>
-        /// Visibility marker characters. Their position in the array must match their position in <see cref="Visibility"/>.
+        /// Visibility marker characters. Their position in the array must match their position in
+        /// <see cref="Visibility"/>.
         /// </summary>
         public static readonly char[] visibilities = { 'x', '-', '#', '~', '+' };
     }
@@ -72,7 +75,8 @@ namespace DocSharp {
         }
 
         /// <summary>
-        /// Fills a folder and all its subfolders with empty index.php files where there is no index.php found to prevent directory listing.
+        /// Fills a folder and all its subfolders with empty index.php files where there
+        /// is no index.php found to prevent directory listing.
         /// </summary>
         public static void FillWithPHP(DirectoryInfo target) {
             string targetName = target.FullName + "\\index.php";
@@ -85,6 +89,20 @@ namespace DocSharp {
         }
 
         /// <summary>
+        /// Get the fully qualified name of a node.
+        /// </summary>
+        public static string FullyQualifiedName(TreeNode node) {
+            List<string> chain = new List<string>();
+            while (node != null) {
+                if (node.Tag != null)
+                    chain.Add(((ElementInfo)node.Tag).Name);
+                node = node.Parent;
+            }
+            chain.Reverse();
+            return string.Join(".", chain.ToArray());
+        }
+
+        /// <summary>
         /// Get a child node of a <see cref="TreeNode"/> by name.
         /// </summary>
         public static TreeNode GetNodeByText(TreeNode parent, string text) {
@@ -93,6 +111,25 @@ namespace DocSharp {
                 if (((TreeNode)enumer.Current).Name.Equals(text))
                     return (TreeNode)enumer.Current;
             return null;
+        }
+
+        /// <summary>
+        /// Get a tag's HTML output with the links replaced and the references assigned.
+        /// </summary>
+        /// <param name="source">The entire XML documentation block</param>
+        /// <param name="tag">Tag name</param>
+        /// <param name="node">Code element</param>
+        /// <returns></returns>
+        public static string GetTag(string source, string tag, TreeNode node) {
+            int startPos = source.IndexOf('<' + tag), endPos = source.IndexOf("</" + tag);
+            if (startPos == -1 || endPos == -1)
+                return string.Empty;
+            int tagLength = tag.Length + 2;
+            string output = source.Substring(startPos + tagLength, endPos - startPos - tagLength).Trim();
+            ReplaceReferences(ref output, node);
+            if (output.Contains("\n"))
+                output = Regex.Replace(output, @"\r\n?|\n", "<br />");
+            return output;
         }
 
         /// <summary>
@@ -132,7 +169,8 @@ namespace DocSharp {
         /// Generates and sets the internally used name and filename for an element.
         /// </summary>
         /// <param name="node">Code element</param>
-        /// <param name="vis">Visibility of the code element - required as the code element is under construction when this is called</param>
+        /// <param name="vis">Visibility of the code element - required as the code element is under
+        /// construction when this is called</param>
         public static void MakeNodeName(TreeNode node, Visibility vis) {
             if (node.Name.Equals(string.Empty)) {
                 int parenthesis = node.Text.IndexOf('(');
@@ -181,7 +219,8 @@ namespace DocSharp {
         /// <param name="fullSummary">The entire XML block of the documentation</param>
         public static string QuickSummary(string fullSummary) {
             int summaryStart = fullSummary.IndexOf("<summary>") + 9;
-            return summaryStart != 8 ? Regex.Replace(fullSummary.Substring(summaryStart, fullSummary.IndexOf("</summary>") - summaryStart)
+            return summaryStart != 8 ? Regex
+                .Replace(fullSummary.Substring(summaryStart, fullSummary.IndexOf("</summary>") - summaryStart)
                 .Replace("<see cref=\"", string.Empty).Replace("\"/>", ""), @"\r\n?|\n", " ") : string.Empty;
         }
 
@@ -191,9 +230,7 @@ namespace DocSharp {
         /// <param name="source">The entire XML block of the documentation</param>
         /// <param name="node">Code element</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static string QuickSummary(string source, TreeNode node) {
-            return RemoveTag(ref source, "summary", node);
-        }
+        public static string QuickSummary(string source, TreeNode node) => RemoveTag(ref source, "summary", node);
 
         /// <summary>
         /// Remove a modifier from a signature.
@@ -208,7 +245,8 @@ namespace DocSharp {
         }
 
         /// <summary>
-        /// Remove the next parameter summary and return its name and description or null if there is no remaining parameter summaries.
+        /// Remove the next parameter summary and return its name and description or null if there
+        /// is no remaining parameter summaries.
         /// </summary>
         /// <param name="source">The entire XML block of the documentation.</param>
         public static string[] RemoveParam(ref string source) {
@@ -241,7 +279,8 @@ namespace DocSharp {
                     fullParams[param] = fullParams[param].Trim();
                     if (fullParams[param].Contains('='))
                         fullParams[param] = fullParams[param].Substring(0, fullParams[param].IndexOf('=')).TrimEnd();
-                    paramTypes += (fullParams[param].Contains(' ') ? fullParams[param].Substring(0, fullParams[param].LastIndexOf(' ')) :
+                    paramTypes += (fullParams[param].Contains(' ') ?
+                        fullParams[param].Substring(0, fullParams[param].LastIndexOf(' ')) :
                         fullParams[param]) + ", ";
                 }
                 if (paramTypes.Length != 0)
@@ -289,8 +328,10 @@ namespace DocSharp {
                 while (!linked && lookingFor != null) {
                     IEnumerator children = lookingFor.Nodes.GetEnumerator();
                     while (children.MoveNext()) {
-                        if (((TreeNode)children.Current).Name.Equals(reference, StringComparison.OrdinalIgnoreCase)) {
-                            reference = "<a href=\"" + path + LocalLink((TreeNode)children.Current) + "\">" + reference + "</a>";
+                        TreeNode child = (TreeNode)children.Current;
+                        if (child.Name.Equals(reference, StringComparison.OrdinalIgnoreCase)) {
+                            reference = "<a href=\"" + path + LocalLink(child) + "\">" + reference + "</a>";
+                            ((ElementInfo)child.Tag).Export.referencedBy.Add(node);
                             linked = true;
                             break;
                         }

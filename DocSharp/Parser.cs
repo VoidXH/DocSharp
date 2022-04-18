@@ -315,6 +315,7 @@ namespace DocSharp {
                                     inherited.Name = cutout;
                                     if (!string.IsNullOrEmpty(summary))
                                         inherited.Summary = summary;
+                                    inherited.Export = new ExportInfo();
                                     newNode.Tag = inherited;
                                 } else {
                                     newNode.Tag = new ElementInfo {
@@ -323,10 +324,11 @@ namespace DocSharp {
                                         DefaultValue = defaultValue,
                                         Extends = extends,
                                         Modifiers = modifiers.Trim(),
-                                        Summary = summary.TrimStart(),
+                                        Summary = summary,
                                         Type = type,
                                         Vis = vis,
-                                        Kind = kind
+                                        Kind = kind,
+                                        Export = new ExportInfo()
                                     };
                                 }
                             }

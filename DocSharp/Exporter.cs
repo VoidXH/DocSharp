@@ -58,7 +58,8 @@ namespace DocSharp {
         /// </summary>
         public void Ping(TreeNode node) {
             ++exported;
-            engine.UpdateStatusLazy(string.Format("Exporting {0} ({1}%)...", node.Name, (exported * 100.0 / exportables).ToString("0.00")));
+            engine.UpdateStatusLazy(string.Format("Exporting {0} ({1}%)...", node.Name,
+                (exported * 100.0 / exportables).ToString("0.00")));
             engine.UpdateProgressBar(exported * 100 / exportables);
         }
 
@@ -91,11 +92,18 @@ namespace DocSharp {
         /// <summary>
         /// Count exportable nodes under a node.
         /// </summary>
-        void CountExportables(TreeNode node) {
-            ++exportables;
+        void Preprocess(TreeNode node) {
+            if (node.Tag != null) {
+                ElementInfo tag = (ElementInfo)node.Tag;
+                ExportInfo export = tag.Export;
+                export.summary = Utils.GetTag(tag.Summary, "summary", node);
+                export.returns = Utils.GetTag(tag.Summary, "returns", node);
+            }
+            if (node.Tag == null || ((ElementInfo)node.Tag).Kind < Element.Functions)
+                ++exportables;
             foreach (TreeNode child in node.Nodes)
-                if (child.Tag == null || ((ElementInfo)child.Tag).Exportable && ((ElementInfo)child.Tag).Kind < Element.Functions)
-                    CountExportables(child);
+                if (child.Tag == null || ((ElementInfo)child.Tag).Exportable)
+                    Preprocess(child);
         }
 
         /// <summary>
@@ -105,9 +113,9 @@ namespace DocSharp {
             engine.UpdateProgressBar(0);
             engine.UpdateStatus("Selecting nodes to export...");
             SetExportability(node);
-            engine.UpdateStatus("Counting nodes to export...");
+            engine.UpdateStatus("Preprocessing nodes to export...");
             exportables = 0;
-            CountExportables(node);
+            Preprocess(node);
             exported = 0;
             engine.UpdateStatus(string.Format("Exporting {0} ({1}%)...", node.Text, 0f.ToString("0.00")));
             Design.GenerateDocumentation(node, path, this);

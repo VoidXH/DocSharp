@@ -101,7 +101,8 @@ namespace DocSharp {
             string menuBuild = string.Empty;
             BuildMenu(ref menuBuild, from, null, locally);
             return baseBuild.Replace(titleMarker, from.Name)
-                .Replace(menuMarker, Utils.Indent(menuBuild.Trim(), Utils.SpacesBefore(baseBuild, baseBuild.IndexOf(menuMarker))));
+                .Replace(menuMarker, Utils.Indent(menuBuild.Trim(),
+                    Utils.SpacesBefore(baseBuild, baseBuild.IndexOf(menuMarker))));
         }
 
         static bool firstEntry, evenRow;
@@ -143,8 +144,8 @@ namespace DocSharp {
             BlockStart();
             while (enumer.MoveNext()) {
                 TreeNode node = (TreeNode)enumer.Current;
-                StringBuilder link = new StringBuilder(((ElementInfo)node.Tag).Type).Append(" <a href=\"").Append(Utils.LocalLink(node))
-                    .Append("\">").Append(((ElementInfo)node.Tag).Name).Append("</a>");
+                StringBuilder link = new StringBuilder(((ElementInfo)node.Tag).Type).Append(" <a href=\"")
+                    .Append(Utils.LocalLink(node)).Append("\">").Append(((ElementInfo)node.Tag).Name).Append("</a>");
                 BlockAppend(block, link.ToString(), Utils.QuickSummary(((ElementInfo)node.Tag).Summary, node));
             }
             return block.Append("</table>").ToString();
@@ -206,7 +207,7 @@ namespace DocSharp {
                 // Summary block
                 string summary = tag.Summary;
                 BlockStart();
-                output.Append(Utils.RemoveTag(ref summary, "summary", node.Nodes.Count != 0 ? node.Nodes[0] : node)).Append("<table>");
+                output.Append(tag.Export.summary).Append("<table>");
                 if (ExportAttributes && !tag.Attributes.Equals(string.Empty)) BlockAppend(output, "Attributes", tag.Attributes);
                 if (tag.Vis != Visibility.Default) BlockAppend(output, "Visibility", tag.Vis.ToString());
                 if (tag.Kind == Element.Properties) {
@@ -216,8 +217,7 @@ namespace DocSharp {
                 if (!tag.Modifiers.Equals(string.Empty)) BlockAppend(output, "Modifiers", tag.Modifiers);
                 if (!tag.Extends.Equals(string.Empty)) BlockAppend(output, "Extends", tag.Extends);
                 if (!tag.DefaultValue.Equals(string.Empty)) BlockAppend(output, "Default value", tag.DefaultValue);
-                string returns = Utils.RemoveTag(ref summary, "returns", node);
-                if (!returns.Equals(string.Empty)) BlockAppend(output, "Returns", returns);
+                if (!tag.Export.returns.Equals(string.Empty)) BlockAppend(output, "Returns", tag.Export.returns);
                 output.Append("</table>");
 
                 if (summary.Contains("</param>")) {
@@ -250,10 +250,21 @@ namespace DocSharp {
                 }
             }
 
-            for (int i = 0; i <= (int)Element.Variables; ++i) {
-                output.Append(i != (int)Element.Namespaces ? VisibilityContentBlock(types[i], ((Element)i).ToString().ToLower()) :
-                    ContentBlock(types[i], "Namespaces"));
+            output.Append(ContentBlock(types[0], "Namespaces"));
+            for (int i = (int)Element.Namespaces + 1; i <= (int)Element.Variables; ++i)
+                output.Append(VisibilityContentBlock(types[i], ((Element)i).ToString().ToLower()));
+
+            if (node.Tag != null && ((ElementInfo)node.Tag).Export.referencedBy.Count != 0) {
+                HashSet<TreeNode> referencedBy = ((ElementInfo)node.Tag).Export.referencedBy;
+                output.Append("<h1>See also</h1>").Append("<table>");
+                BlockStart();
+                foreach (TreeNode reference in referencedBy)
+                    if (((ElementInfo)reference.Tag).Exportable)
+                        BlockAppend(output, Utils.FullyQualifiedName(reference),
+                            Utils.QuickSummary(((ElementInfo)reference.Tag).Summary));
+                output.Append("</table>");
             }
+
             return output.ToString();
         }
 
