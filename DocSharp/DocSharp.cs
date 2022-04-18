@@ -26,7 +26,7 @@ namespace DocSharp {
             else {
                 int recentPos = newRecents.IndexOf(recent);
                 if (recentPos == -1)
-                    Properties.Settings.Default.Recents = string.Format("{0}\n{1}", recent, newRecents);
+                    Properties.Settings.Default.Recents = $"{recent}\n{newRecents}";
                 else
                     Properties.Settings.Default.Recents = string.Format("{0}\n{1}{2}", recent,
                         newRecents.Substring(0, recentPos), newRecents.Substring(recentPos + recent.Length + 1));
@@ -39,9 +39,7 @@ namespace DocSharp {
         /// <summary>
         /// Load code from a folder which is on the recents list.
         /// </summary>
-        void LoadRecent(object sender, EventArgs e) {
-            LoadRecent(((ToolStripMenuItem)sender).Text);
-        }
+        void LoadRecent(object sender, EventArgs e) => LoadRecent(((ToolStripMenuItem)sender).Text);
 
         /// <summary>
         /// Fill the recents list with the saved entries.
