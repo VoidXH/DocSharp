@@ -307,7 +307,8 @@ namespace DocSharp {
                                     newNode.Tag = tag;
                                 }
                                 // "int a, b;" case, copy tags
-                                else if (type.Equals(string.Empty) && newNode.Parent.Nodes.Count > 1) {
+                                else if (type.Equals(string.Empty) && newNode.Parent != null && newNode.Parent.Nodes.Count > 1
+                                    && !cutout.Contains(((ElementInfo)newNode.Parent.Tag).Name)) { // Not constructor
                                     TreeNode lastNode = newNode.Parent.Nodes[newNode.Parent.Nodes.Count - 2];
                                     newNode.NodeFont = lastNode.NodeFont;
                                     ElementInfo inherited = (ElementInfo)lastNode.Tag;
