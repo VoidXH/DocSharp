@@ -347,7 +347,8 @@ namespace DocSharp {
                     case ']':
                         if (lastEquals != i - 1 && !inRemovableBlock && !commentLine && !preprocessorSkip)
                             --parenthesis;
-                        inTemplate = false;
+                        if (code[i] != ']')
+                            inTemplate = false;
                         break;
                     case '<':
                         // could be a simple "smaller than", but cancelled at all possibilities that break this assumption
