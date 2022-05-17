@@ -218,9 +218,10 @@ namespace DocSharp {
         /// </summary>
         /// <param name="fullSummary">The entire XML block of the documentation</param>
         public static string QuickSummary(string fullSummary) {
-            int summaryStart = fullSummary.IndexOf("<summary>") + 9;
-            return summaryStart != 8 ? Regex
-                .Replace(fullSummary.Substring(summaryStart, fullSummary.IndexOf("</summary>") - summaryStart)
+            int summaryStart = fullSummary.IndexOf("<summary>") + 9,
+                summaryLength = fullSummary.IndexOf("</summary>") - summaryStart;
+            return summaryStart != 8 && summaryLength > 0 ? Regex
+                .Replace(fullSummary.Substring(summaryStart, summaryLength)
                 .Replace("<see cref=\"", string.Empty).Replace("\"/>", ""), @"\r\n?|\n", " ") : string.Empty;
         }
 
