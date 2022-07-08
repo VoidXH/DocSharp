@@ -73,6 +73,8 @@
     </Compile>
     <Compile Include="Exporter.cs" />
     <Compile Include="ExportInfo.cs" />
+    <Compile Include="MemberNode.cs" />
+    <Compile Include="MemberNodes.cs" />
     <Compile Include="Parser.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

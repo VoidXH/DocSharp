@@ -18,17 +18,6 @@ namespace DocSharp {
     /// </summary>
     enum Visibility { Default, Private, Protected, Internal, Public }
 
-    /// <summary>
-    /// All documentation information about a code element.
-    /// </summary>
-    struct ElementInfo {
-        public bool Exportable;
-        public string Name, Attributes, DefaultValue, Extends, Modifiers, Summary, Type;
-        public Visibility Vis, Getter, Setter;
-        public Element Kind;
-        public ExportInfo Export;
-    }
-
     static class Constants {
         /// <summary>
         /// Element modifiers.
@@ -91,12 +80,12 @@ namespace DocSharp {
         /// <summary>
         /// Get the fully qualified name of a node.
         /// </summary>
-        public static string FullyQualifiedName(TreeNode node) {
+        public static string FullyQualifiedName(MemberNode node) {
             List<string> chain = new List<string>();
             while (node != null) {
-                if (node.Tag != null)
-                    chain.Add(((ElementInfo)node.Tag).Name);
-                node = node.Parent;
+                if (node.name != null)
+                    chain.Add(node.name);
+                node = (MemberNode)node.Parent;
             }
             chain.Reverse();
             return string.Join(".", chain.ToArray());
@@ -105,11 +94,11 @@ namespace DocSharp {
         /// <summary>
         /// Get a child node of a <see cref="TreeNode"/> by name.
         /// </summary>
-        public static TreeNode GetNodeByText(TreeNode parent, string text) {
+        public static MemberNode GetNodeByText(MemberNode parent, string text) {
             IEnumerator enumer = parent.Nodes.GetEnumerator();
             while (enumer.MoveNext())
-                if (((TreeNode)enumer.Current).Name.Equals(text))
-                    return (TreeNode)enumer.Current;
+                if (((MemberNode)enumer.Current).Name.Equals(text))
+                    return (MemberNode)enumer.Current;
             return null;
         }
 
@@ -120,7 +109,7 @@ namespace DocSharp {
         /// <param name="tag">Tag name</param>
         /// <param name="node">Code element</param>
         /// <returns></returns>
-        public static string GetTag(string source, string tag, TreeNode node) {
+        public static string GetTag(string source, string tag, MemberNode node) {
             int startPos = source.IndexOf('<' + tag), endPos = source.IndexOf("</" + tag);
             if (startPos == -1 || endPos == -1)
                 return string.Empty;
@@ -147,9 +136,9 @@ namespace DocSharp {
         /// </summary>
         /// <param name="to">Target code element</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static string LocalLink(TreeNode to) {
-            return new StringBuilder(to.Name).Append(((ElementInfo)to.Tag).Kind < Element.Functions ? "\\index." : ".")
-                .Append(Design.Extension).ToString();
+        public static string LocalLink(MemberNode to) {
+            return new StringBuilder(to.Name).Append(to.kind < Element.Functions ? "\\index." : ".")
+                .Append(Design.extension).ToString();
         }
 
         /// <summary>
@@ -169,9 +158,7 @@ namespace DocSharp {
         /// Generates and sets the internally used name and filename for an element.
         /// </summary>
         /// <param name="node">Code element</param>
-        /// <param name="vis">Visibility of the code element - required as the code element is under
-        /// construction when this is called</param>
-        public static void MakeNodeName(TreeNode node, Visibility vis) {
+        public static void MakeNodeName(MemberNode node) {
             if (node.Name.Equals(string.Empty)) {
                 int parenthesis = node.Text.IndexOf('(');
                 string nameOnly = parenthesis == -1 ? node.Text : node.Text.Substring(0, parenthesis);
@@ -194,8 +181,8 @@ namespace DocSharp {
                     }
                 }
             }
-            if (vis != Visibility.Default)
-                node.Text = Constants.visibilities[(int)vis] + node.Text;
+            if (node.vis != Visibility.Default)
+                node.Text = Constants.visibilities[(int)node.vis] + node.Text;
         }
 
         /// <summary>
@@ -231,7 +218,7 @@ namespace DocSharp {
         /// <param name="source">The entire XML block of the documentation</param>
         /// <param name="node">Code element</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static string QuickSummary(string source, TreeNode node) => RemoveTag(ref source, "summary", node);
+        public static string QuickSummary(string source, MemberNode node) => RemoveTag(ref source, "summary", node);
 
         /// <summary>
         /// Remove a modifier from a signature.
@@ -298,7 +285,7 @@ namespace DocSharp {
         /// <param name="tag">Tag name</param>
         /// <param name="node">Code element</param>
         /// <returns></returns>
-        public static string RemoveTag(ref string source, string tag, TreeNode node) {
+        public static string RemoveTag(ref string source, string tag, MemberNode node) {
             int startPos = source.IndexOf('<' + tag), endPos = source.IndexOf("</" + tag);
             if (startPos == -1 || endPos == -1)
                 return string.Empty;
@@ -316,7 +303,7 @@ namespace DocSharp {
         /// </summary>
         /// <param name="source">Description</param>
         /// <param name="node">Code element</param>
-        static void ReplaceReferences(ref string source, TreeNode node) {
+        static void ReplaceReferences(ref string source, MemberNode node) {
             int seePos;
             while ((seePos = source.IndexOf("<see")) != -1) {
                 int refStart = source.IndexOf('"', seePos); if (refStart == -1) return;
@@ -324,20 +311,20 @@ namespace DocSharp {
                 int seeEnd = source.IndexOf('>', seePos); if (seeEnd == -1) return;
                 string reference = source.Substring(refStart + 1, refEnd - refStart - 1);
                 bool linked = false, firstRun = true;
-                TreeNode lookingFor = node;
+                MemberNode lookingFor = node;
                 string path = string.Empty;
                 while (!linked && lookingFor != null) {
                     IEnumerator children = lookingFor.Nodes.GetEnumerator();
                     while (children.MoveNext()) {
-                        TreeNode child = (TreeNode)children.Current;
+                        MemberNode child = (MemberNode)children.Current;
                         if (child.Name.Equals(reference, StringComparison.OrdinalIgnoreCase)) {
                             reference = "<a href=\"" + path + LocalLink(child) + "\">" + reference + "</a>";
-                            ((ElementInfo)child.Tag).Export.referencedBy.Add(node);
+                            child.export.referencedBy.Add(node);
                             linked = true;
                             break;
                         }
                     }
-                    lookingFor = lookingFor.Parent;
+                    lookingFor = (MemberNode)lookingFor.Parent;
                     if (firstRun)
                         firstRun = false;
                     else

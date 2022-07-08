@@ -1,6 +1,6 @@
 ﻿namespace DocSharp {
     // HTML design of the exporter.
-    public static partial class Design {
+    static partial class Design {
         // Replace markers for the exporter.
         const string
             titleMarker = "<!--title-->",
@@ -99,7 +99,7 @@ table {
   border: none;
   padding-bottom: 8px;
   width: 100%;
-}            
+}
 table tr td {
   text-align: left;
   vertical-align: top;

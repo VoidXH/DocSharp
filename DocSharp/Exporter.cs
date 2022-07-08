@@ -6,9 +6,9 @@ namespace DocSharp {
     /// <summary>
     /// Makes a bridge between the export process and the GUI.
     /// </summary>
-    public class Exporter {
+    class Exporter {
         readonly TaskEngine engine;
-        TreeNode node;
+        MemberNode node;
         string path;
         int exported, exportables;
 
@@ -67,20 +67,18 @@ namespace DocSharp {
         /// Set the exportability of the selected and all child nodes based on user preferences.
         /// </summary>
         /// <param name="node">Root node</param>
-        void SetExportability(TreeNode node) {
-            foreach (TreeNode child in node.Nodes) {
-                ElementInfo tag = (ElementInfo)child.Tag;
-                tag.Exportable = false;
-                if (tag.Vis == Visibility.Default || (tag.Vis == Visibility.Public && ExportPublic) ||
-                    (tag.Vis == Visibility.Internal && ExportInternal) || (tag.Vis == Visibility.Protected && ExportProtected) ||
-                    (tag.Vis == Visibility.Private && ExportPrivate))
-                    tag.Exportable = true;
-                if (tag.Exportable) {
-                    child.Tag = tag;
-                    if (tag.Kind == Element.Enums) {
+        void SetExportability(MemberNode node) {
+            foreach (MemberNode child in node.Nodes) {
+                child.exportable = false;
+                if (child.vis == Visibility.Default || (child.vis == Visibility.Public && ExportPublic) ||
+                    (child.vis == Visibility.Internal && ExportInternal) ||
+                    (child.vis == Visibility.Protected && ExportProtected) || (child.vis == Visibility.Private && ExportPrivate))
+                    child.exportable = true;
+                if (child.exportable) {
+                    if (child.kind == Element.Enums) {
                         if (ExpandEnums)
                             SetExportability(child);
-                    } else if (tag.Kind == Element.Structs) {
+                    } else if (child.kind == Element.Structs) {
                         if (ExpandStructs)
                             SetExportability(child);
                     } else
@@ -92,17 +90,16 @@ namespace DocSharp {
         /// <summary>
         /// Count exportable nodes under a node.
         /// </summary>
-        void Preprocess(TreeNode node) {
-            if (node.Tag != null) {
-                ElementInfo tag = (ElementInfo)node.Tag;
-                ExportInfo export = tag.Export;
-                export.summary = Utils.GetTag(tag.Summary, "summary", node);
-                export.returns = Utils.GetTag(tag.Summary, "returns", node);
+        void Preprocess(MemberNode node) {
+            if (node.name != null) {
+                ExportInfo export = node.export;
+                export.summary = Utils.GetTag(node.summary, "summary", node);
+                export.returns = Utils.GetTag(node.summary, "returns", node);
             }
-            if (node.Tag == null || ((ElementInfo)node.Tag).Kind < Element.Functions)
+            if (node.name == null || node.kind < Element.Functions)
                 ++exportables;
-            foreach (TreeNode child in node.Nodes)
-                if (child.Tag == null || ((ElementInfo)child.Tag).Exportable)
+            foreach (MemberNode child in node.Nodes)
+                if (child.Tag == null || node.exportable)
                     Preprocess(child);
         }
 
@@ -133,7 +130,7 @@ namespace DocSharp {
         /// </summary>
         /// <param name="node">Program tree</param>
         /// <param name="path">Path to the documentation</param>
-        public void GenerateDocumentation(TreeNode node, string path) {
+        public void GenerateDocumentation(MemberNode node, string path) {
             this.node = node;
             this.path = path;
             engine.Run(Task);

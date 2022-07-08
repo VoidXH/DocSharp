@@ -8,11 +8,11 @@ namespace DocSharp {
     /// <summary>
     /// Handles loading the code from files into nodes.
     /// </summary>
-    public class Parser {
+    class Parser {
         readonly string path;
-        readonly TreeNode root;
+        readonly MemberNode root;
         readonly TreeView sourceInfo;
-        readonly Font italic, underline;
+        readonly Font italic, underline, bold;
         readonly string defines;
         readonly TaskEngine engine;
 
@@ -24,12 +24,13 @@ namespace DocSharp {
         /// <param name="sourceInfo">Source code discovery tree</param>
         /// <param name="defines">Defined constants</param>
         /// <param name="engine">Task engine for process display</param>
-        public Parser(string path, TreeNode root, TreeView sourceInfo, string defines, TaskEngine engine = null) {
+        public Parser(string path, MemberNode root, TreeView sourceInfo, string defines, TaskEngine engine = null) {
             this.path = path;
             this.root = root;
             this.sourceInfo = sourceInfo;
             italic = new Font(sourceInfo.Font, FontStyle.Italic);
             underline = new Font(sourceInfo.Font, FontStyle.Underline);
+            bold = new Font(sourceInfo.Font, FontStyle.Bold);
             this.defines = defines;
             this.engine = engine;
         }
@@ -43,6 +44,7 @@ namespace DocSharp {
                 engine.UpdateStatus("Searching for .cs files...");
             }
             string[] files = Directory.GetFiles(path, "*.cs", SearchOption.AllDirectories);
+
             int loc = 0;
             for (int i = 0; i < files.Length; ++i) {
                 if (files[i].Contains("\\obj\\"))
@@ -54,7 +56,15 @@ namespace DocSharp {
                 string text = File.ReadAllText(files[i]);
                 loc += ParseBlock(text, root);
             }
-            sourceInfo.Invoke((MethodInvoker)delegate { sourceInfo.EndUpdate(); });
+
+            sourceInfo.Invoke((MethodInvoker)delegate {
+                engine.UpdateStatus($"Reordering tree...");
+                root.Nodes.Diverge();
+                root.Nodes.Merge();
+                root.Nodes.Sort();
+                sourceInfo.EndUpdate();
+            });
+
             if (engine != null) {
                 engine.UpdateProgressBar(100);
                 engine.UpdateStatus($"Finished parsing {loc} lines of code!");
@@ -91,7 +101,7 @@ namespace DocSharp {
         /// <param name="code">Code</param>
         /// <param name="node">Root node</param>
         /// <returns>Lines of code parsed.</returns>
-        int ParseBlock(string code, TreeNode node) {
+        int ParseBlock(string code, MemberNode node) {
             int codeLen = code.Length, lastEnding = 0, lastSlash = -2, lastEquals = -2,
                 parenthesis = 0, depth = 0, lastRemovableDepth = 0, loc = 0;
             bool commentLine = false, inRemovableBlock = false, inString = false,
@@ -154,16 +164,14 @@ namespace DocSharp {
                             if (inRemovableBlock) {
                                 bool getter = cutout.EndsWith(_getter), setter = cutout.EndsWith(_setter);
                                 if (getter || setter) {
-                                    ElementInfo info = (ElementInfo)node.Tag;
                                     Visibility visHere = Visibility.Public;
                                     if (cutout.StartsWith(_protected)) visHere = Visibility.Protected;
                                     else if (cutout.StartsWith(_internal)) visHere = Visibility.Internal;
                                     else if (cutout.StartsWith(_private)) visHere = Visibility.Private;
                                     if (getter)
-                                        info.Getter = visHere;
+                                        node.getter = visHere;
                                     else
-                                        info.Setter = visHere;
-                                    node.Tag = info;
+                                        node.setter = visHere;
                                 }
                                 continue;
                             }
@@ -183,7 +191,7 @@ namespace DocSharp {
                             // Property array initialization
                             int nodes = node.Nodes.Count;
                             if (block && cutout[0] == '=' &&
-                                nodes != 0 && ((ElementInfo)node.Nodes[nodes - 1].Tag).Kind == Element.Properties) {
+                                nodes != 0 && ((MemberNode)node.Nodes[nodes - 1]).kind == Element.Properties) {
                                 lastRemovableDepth = depth;
                                 inRemovableBlock = true;
                                 propertyArray = true;
@@ -266,8 +274,8 @@ namespace DocSharp {
 
                             // Default visibility
                             if (vis == Visibility.Default && kind != Element.Namespaces) {
-                                if (node.Tag != null && (((ElementInfo)node.Tag).Kind == Element.Enums ||
-                                    ((ElementInfo)node.Tag).Kind == Element.Interfaces))
+                                if (node.name != null && (node.kind == Element.Enums ||
+                                    node.kind == Element.Interfaces))
                                     vis = Visibility.Public;
                                 else if (kind == Element.Classes || kind == Element.Interfaces || kind == Element.Structs)
                                     vis = Visibility.Internal;
@@ -282,11 +290,14 @@ namespace DocSharp {
                             }
 
                             // Node handling
-                            TreeNode newNode = Utils.GetNodeByText(node, cutout);
+                            MemberNode newNode = Utils.GetNodeByText(node, cutout);
                             if (!cutout.Equals(string.Empty)) {
                                 if (newNode == null) {
                                     sourceInfo.Invoke((MethodInvoker)delegate {
-                                        Utils.MakeNodeName(newNode = node.Nodes.Add(Utils.RemoveParamNames(cutout)), vis);
+                                        newNode = new MemberNode(Utils.RemoveParamNames(cutout));
+                                        node.Nodes.Add(newNode);
+                                        newNode.vis = vis;
+                                        Utils.MakeNodeName(newNode);
                                     });
                                     if (modifiers.Contains(_abstract))
                                         newNode.NodeFont = italic;
@@ -301,40 +312,37 @@ namespace DocSharp {
                                         inRemovableBlock = true;
                                     }
                                 }
-                                if (newNode.Tag != null) {
-                                    ElementInfo tag = (ElementInfo)newNode.Tag;
-                                    tag.Summary += summary;
-                                    newNode.Tag = tag;
+                                if (newNode.name != null) {
+                                    newNode.summary += summary;
                                 }
                                 // "int a, b;" case, copy tags
                                 else if (type.Equals(string.Empty) && newNode.Parent != null && newNode.Parent.Nodes.Count > 1
-                                    && !cutout.Contains(((ElementInfo)newNode.Parent.Tag).Name)) { // Not constructor
-                                    TreeNode lastNode = newNode.Parent.Nodes[newNode.Parent.Nodes.Count - 2];
+                                    && !cutout.Contains(((MemberNode)newNode.Parent).name)) { // Not constructor
+                                    MemberNode lastNode = (MemberNode)newNode.Parent.Nodes[newNode.Parent.Nodes.Count - 2];
                                     newNode.NodeFont = lastNode.NodeFont;
-                                    ElementInfo inherited = (ElementInfo)lastNode.Tag;
-                                    inherited.DefaultValue = defaultValue;
-                                    inherited.Name = cutout;
+                                    newNode.CopyFrom(lastNode, false);
+                                    newNode.defaultValue = defaultValue;
+                                    newNode.name = cutout;
                                     if (!string.IsNullOrEmpty(summary))
-                                        inherited.Summary = summary;
-                                    inherited.Export = new ExportInfo();
-                                    newNode.Tag = inherited;
+                                        newNode.summary = summary;
+                                    newNode.export = new ExportInfo();
                                 } else {
-                                    newNode.Tag = new ElementInfo {
-                                        Name = cutout,
-                                        Attributes = attributes,
-                                        DefaultValue = defaultValue,
-                                        Extends = extends,
-                                        Modifiers = modifiers.Trim(),
-                                        Summary = summary,
-                                        Type = type,
-                                        Vis = vis,
-                                        Kind = kind,
-                                        Export = new ExportInfo()
-                                    };
+                                    newNode.name = cutout;
+                                    newNode.attributes = attributes;
+                                    newNode.defaultValue = defaultValue;
+                                    newNode.extends = extends;
+                                    newNode.modifiers = modifiers.Trim();
+                                    newNode.summary = summary;
+                                    newNode.type = type;
+                                    newNode.vis = vis;
+                                    newNode.kind = kind;
+                                    newNode.export = new ExportInfo();
+                                    if (kind == Element.Namespaces)
+                                        newNode.NodeFont = bold;
                                 }
                             }
                             if (closing && node.Parent != null)
-                                node = node.Parent;
+                                node = (MemberNode)node.Parent;
                             summary = string.Empty;
                         }
                         break;

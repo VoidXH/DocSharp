@@ -14,7 +14,7 @@ namespace DocSharp {
         readonly TaskEngine task;
 
         string lastLoaded = string.Empty;
-        TreeNode import;
+        MemberNode import;
 
         /// <summary>
         /// Load code from a folder.
@@ -112,7 +112,8 @@ namespace DocSharp {
             currentDefines.Text = "Code loaded with: " + (defines.Equals(string.Empty) ? "-" : defines);
             sourceInfo.BeginUpdate();
             sourceInfo.Nodes.Clear();
-            import = sourceInfo.Nodes.Add(path.Substring(path.LastIndexOf('\\') + 1));
+            import = MemberNode.MakeNamespace(path.Substring(path.LastIndexOf('\\') + 1));
+            sourceInfo.Nodes.Add(import);
             Parser parser = new Parser(path, import, sourceInfo, defines, task);
             task.Run(parser.Process);
         }
@@ -148,21 +149,20 @@ namespace DocSharp {
         /// </summary>
         private void SourceInfo_AfterSelect(object sender, TreeViewEventArgs e) {
             StringBuilder info = new StringBuilder();
-            TreeNode node = sourceInfo.SelectedNode;
-            if (node != null && node.Tag != null) {
-                ElementInfo tag = (ElementInfo)node.Tag;
-                Utils.AppendIfExists(info, "Attributes", tag.Attributes);
-                Utils.AppendIfExists(info, "Visibility", tag.Vis.ToString().ToLower());
-                if (tag.Kind == Element.Properties) {
-                    Utils.AppendIfExists(info, "Getter", tag.Getter.ToString().ToLower());
-                    Utils.AppendIfExists(info, "Setter", tag.Setter.ToString().ToLower());
+            MemberNode node = (MemberNode)sourceInfo.SelectedNode;
+            if (node != null && node.name != null) {
+                Utils.AppendIfExists(info, "Attributes", node.attributes);
+                Utils.AppendIfExists(info, "Visibility", node.vis.ToString().ToLower());
+                if (node.kind == Element.Properties) {
+                    Utils.AppendIfExists(info, "Getter", node.getter.ToString().ToLower());
+                    Utils.AppendIfExists(info, "Setter", node.setter.ToString().ToLower());
                 }
-                Utils.AppendIfExists(info, "Modifiers", tag.Modifiers);
-                Utils.AppendIfExists(info, "Type", tag.Type);
-                Utils.AppendIfExists(info, "Default value", tag.DefaultValue);
-                Utils.AppendIfExists(info, "Extends", tag.Extends);
-                if (tag.Summary.Length != 0)
-                    info.AppendLine().AppendLine().Append(Utils.QuickSummary(tag.Summary));
+                Utils.AppendIfExists(info, "Modifiers", node.modifiers);
+                Utils.AppendIfExists(info, "Type", node.type);
+                Utils.AppendIfExists(info, "Default value", node.defaultValue);
+                Utils.AppendIfExists(info, "Extends", node.extends);
+                if (node.summary.Length != 0)
+                    info.AppendLine().AppendLine().Append(Utils.QuickSummary(node.summary));
             }
             infoLabel.Text = info.ToString();
         }
@@ -184,8 +184,8 @@ namespace DocSharp {
                 if ((dir.GetDirectories().Length == 0 && dir.GetDirectories().Length == 0) ||
                     MessageBox.Show(string.Format("The folder ({0}) is not empty. Continue generation anyway?",
                     folderDialog.SelectedPath), "Warning", MessageBoxButtons.YesNo) == DialogResult.Yes) {
-                    Design.Extension = extension.Text.Equals(string.Empty) ? "html" : extension.Text;
-                    Design.ExportAttributes = exportAttributes.Checked;
+                    Design.extension = extension.Text.Equals(string.Empty) ? "html" : extension.Text;
+                    Design.exportAttributes = exportAttributes.Checked;
                     Exporter exporter = new Exporter(task) {
                         GenerateFillers = phpFillers.Checked && !extension.Text.Equals("php"),
                         ExportPublic = exportPublic.Checked,
