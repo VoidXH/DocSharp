@@ -61,6 +61,7 @@ namespace DocSharp {
                 engine.UpdateStatus($"Reordering tree...");
                 root.Nodes.Diverge();
                 root.Nodes.Merge();
+                root.Nodes.NumberEnums();
                 root.Nodes.Sort();
                 sourceInfo.EndUpdate();
             });
@@ -169,9 +170,9 @@ namespace DocSharp {
                                     else if (cutout.StartsWith(_internal)) visHere = Visibility.Internal;
                                     else if (cutout.StartsWith(_private)) visHere = Visibility.Private;
                                     if (getter)
-                                        node.getter = visHere;
+                                        node.Getter = visHere;
                                     else
-                                        node.setter = visHere;
+                                        node.Setter = visHere;
                                 }
                                 continue;
                             }
@@ -191,7 +192,7 @@ namespace DocSharp {
                             // Property array initialization
                             int nodes = node.Nodes.Count;
                             if (block && cutout[0] == '=' &&
-                                nodes != 0 && ((MemberNode)node.Nodes[nodes - 1]).kind == Element.Properties) {
+                                nodes != 0 && ((MemberNode)node.Nodes[nodes - 1]).Kind == Element.Properties) {
                                 lastRemovableDepth = depth;
                                 inRemovableBlock = true;
                                 propertyArray = true;
@@ -274,8 +275,8 @@ namespace DocSharp {
 
                             // Default visibility
                             if (vis == Visibility.Default && kind != Element.Namespaces) {
-                                if (node.name != null && (node.kind == Element.Enums ||
-                                    node.kind == Element.Interfaces))
+                                if (node.name != null && (node.Kind == Element.Enums ||
+                                    node.Kind == Element.Interfaces))
                                     vis = Visibility.Public;
                                 else if (kind == Element.Classes || kind == Element.Interfaces || kind == Element.Structs)
                                     vis = Visibility.Internal;
@@ -296,7 +297,7 @@ namespace DocSharp {
                                     sourceInfo.Invoke((MethodInvoker)delegate {
                                         newNode = new MemberNode(Utils.RemoveParamNames(cutout));
                                         node.Nodes.Add(newNode);
-                                        newNode.vis = vis;
+                                        newNode.Vis = vis;
                                         Utils.MakeNodeName(newNode);
                                     });
                                     if (modifiers.Contains(_abstract))
@@ -312,9 +313,9 @@ namespace DocSharp {
                                         inRemovableBlock = true;
                                     }
                                 }
-                                if (newNode.name != null) {
+
+                                if (newNode.name != null)
                                     newNode.summary += summary;
-                                }
                                 // "int a, b;" case, copy tags
                                 else if (type.Equals(string.Empty) && newNode.Parent != null && newNode.Parent.Nodes.Count > 1
                                     && !cutout.Contains(((MemberNode)newNode.Parent).name)) { // Not constructor
@@ -334,8 +335,8 @@ namespace DocSharp {
                                     newNode.modifiers = modifiers.Trim();
                                     newNode.summary = summary;
                                     newNode.type = type;
-                                    newNode.vis = vis;
-                                    newNode.kind = kind;
+                                    newNode.Vis = vis;
+                                    newNode.Kind = kind;
                                     newNode.export = new ExportInfo();
                                     if (kind == Element.Namespaces)
                                         newNode.NodeFont = bold;

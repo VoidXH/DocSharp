@@ -108,7 +108,6 @@ namespace DocSharp {
         /// <param name="source">The entire XML documentation block</param>
         /// <param name="tag">Tag name</param>
         /// <param name="node">Code element</param>
-        /// <returns></returns>
         public static string GetTag(string source, string tag, MemberNode node) {
             int startPos = source.IndexOf('<' + tag), endPos = source.IndexOf("</" + tag);
             if (startPos == -1 || endPos == -1)
@@ -137,7 +136,7 @@ namespace DocSharp {
         /// <param name="to">Target code element</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static string LocalLink(MemberNode to) {
-            return new StringBuilder(to.Name).Append(to.kind < Element.Functions ? "\\index." : ".")
+            return new StringBuilder(to.Name).Append(to.Kind < Element.Functions ? "\\index." : ".")
                 .Append(Design.extension).ToString();
         }
 
@@ -181,8 +180,8 @@ namespace DocSharp {
                     }
                 }
             }
-            if (node.vis != Visibility.Default)
-                node.Text = Constants.visibilities[(int)node.vis] + node.Text;
+            if (node.Vis != Visibility.Default)
+                node.Text = Constants.visibilities[(int)node.Vis] + node.Text;
         }
 
         /// <summary>
@@ -209,7 +208,7 @@ namespace DocSharp {
                 summaryLength = fullSummary.IndexOf("</summary>") - summaryStart;
             return summaryStart != 8 && summaryLength > 0 ? Regex
                 .Replace(fullSummary.Substring(summaryStart, summaryLength)
-                .Replace("<see cref=\"", string.Empty).Replace("\"/>", ""), @"\r\n?|\n", " ") : string.Empty;
+                .Replace("<see cref=\"", string.Empty).Replace("\"/>", ""), @"\r\n?|\n", " ").Trim() : string.Empty;
         }
 
         /// <summary>
@@ -218,7 +217,7 @@ namespace DocSharp {
         /// <param name="source">The entire XML block of the documentation</param>
         /// <param name="node">Code element</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static string QuickSummary(string source, MemberNode node) => RemoveTag(ref source, "summary", node);
+        public static string QuickSummary(string source, MemberNode node) => RemoveTag(ref source, "summary", node).Trim();
 
         /// <summary>
         /// Remove a modifier from a signature.
@@ -284,7 +283,6 @@ namespace DocSharp {
         /// <param name="source">The entire XML documentation block</param>
         /// <param name="tag">Tag name</param>
         /// <param name="node">Code element</param>
-        /// <returns></returns>
         public static string RemoveTag(ref string source, string tag, MemberNode node) {
             int startPos = source.IndexOf('<' + tag), endPos = source.IndexOf("</" + tag);
             if (startPos == -1 || endPos == -1)

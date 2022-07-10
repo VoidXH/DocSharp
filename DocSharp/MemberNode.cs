@@ -14,10 +14,12 @@ namespace DocSharp {
         public string modifiers;
         public string summary;
         public string type;
-        public Visibility vis;
-        public Visibility getter;
-        public Visibility setter;
-        public Element kind;
+
+        public Visibility Vis { get; set; }
+        public Visibility Getter { get; set; }
+        public Visibility Setter { get; set; }
+        public Element Kind { get; set; }
+
         public ExportInfo export;
 
         /// <summary>
@@ -27,7 +29,7 @@ namespace DocSharp {
 
         public static MemberNode MakeNamespace(string text) {
             MemberNode node = new MemberNode(text) {
-                kind = Element.Namespaces,
+                Kind = Element.Namespaces,
                 name = text,
                 Name = text,
                 Text = text,
@@ -36,7 +38,8 @@ namespace DocSharp {
                 extends = string.Empty,
                 modifiers = string.Empty,
                 summary = string.Empty,
-                type = string.Empty
+                type = string.Empty,
+                export = new ExportInfo()
             };
             return node;
         }
@@ -52,10 +55,10 @@ namespace DocSharp {
             modifiers = other.modifiers;
             summary = other.summary;
             type = other.type;
-            vis = other.vis;
-            getter = other.getter;
-            setter = other.setter;
-            kind = other.kind;
+            Vis = other.Vis;
+            Getter = other.Getter;
+            Setter = other.Setter;
+            Kind = other.Kind;
             export = other.export;
             if (copyName) {
                 name = other.name;

@@ -35,7 +35,7 @@ namespace DocSharp {
                 exporter.Ping(node);
             foreach (MemberNode child in node.Nodes) {
                 if (child.exportable) {
-                    if (child.kind >= Element.Functions)
+                    if (child.Kind >= Element.Functions)
                         GeneratePage(path + '\\' + child.Name + '.' + extension, child, depth);
                     else
                         GenerateDocumentation(child, path + '\\' + child.Name, depth + 1);
@@ -165,7 +165,7 @@ namespace DocSharp {
             while (enumer.MoveNext()) {
                 MemberNode current = (MemberNode)enumer.Current;
                 bool isStatic = current.modifiers.Contains(Parser._static);
-                outs[(int)current.vis - 1 + (isStatic ? (int)Visibility.Public : 0)].Add(current);
+                outs[(int)current.Vis - 1 + (isStatic ? (int)Visibility.Public : 0)].Add(current);
             }
 
             titlePostfix = ' ' + titlePostfix;
@@ -191,7 +191,7 @@ namespace DocSharp {
             while (enumer.MoveNext()) {
                 MemberNode current = (MemberNode)enumer.Current;
                 if (current.exportable)
-                    types[(int)current.kind].Add(current);
+                    types[(int)current.Kind].Add(current);
             }
 
             StringBuilder output = new StringBuilder("<h1>");
@@ -207,10 +207,10 @@ namespace DocSharp {
                 BlockStart();
                 output.Append(node.export.summary).Append("<table>");
                 if (exportAttributes && !node.attributes.Equals(string.Empty)) BlockAppend(output, "Attributes", node.attributes);
-                if (node.vis != Visibility.Default) BlockAppend(output, "Visibility", node.vis.ToString());
-                if (node.kind == Element.Properties) {
-                    BlockAppend(output, "Getter", node.getter != Visibility.Default ? node.getter.ToString() : "No getter");
-                    BlockAppend(output, "Setter", node.setter != Visibility.Default ? node.setter.ToString() : "No setter");
+                if (node.Vis != Visibility.Default) BlockAppend(output, "Visibility", node.Vis.ToString());
+                if (node.Kind == Element.Properties) {
+                    BlockAppend(output, "Getter", node.Getter != Visibility.Default ? node.Getter.ToString() : "No getter");
+                    BlockAppend(output, "Setter", node.Setter != Visibility.Default ? node.Setter.ToString() : "No setter");
                 }
                 if (!node.modifiers.Equals(string.Empty)) BlockAppend(output, "Modifiers", node.modifiers);
                 if (!node.extends.Equals(string.Empty)) BlockAppend(output, "Extends", node.extends);

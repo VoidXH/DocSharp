@@ -70,15 +70,15 @@ namespace DocSharp {
         void SetExportability(MemberNode node) {
             foreach (MemberNode child in node.Nodes) {
                 child.exportable = false;
-                if (child.vis == Visibility.Default || (child.vis == Visibility.Public && ExportPublic) ||
-                    (child.vis == Visibility.Internal && ExportInternal) ||
-                    (child.vis == Visibility.Protected && ExportProtected) || (child.vis == Visibility.Private && ExportPrivate))
+                if (child.Vis == Visibility.Default || (child.Vis == Visibility.Public && ExportPublic) ||
+                    (child.Vis == Visibility.Internal && ExportInternal) ||
+                    (child.Vis == Visibility.Protected && ExportProtected) || (child.Vis == Visibility.Private && ExportPrivate))
                     child.exportable = true;
                 if (child.exportable) {
-                    if (child.kind == Element.Enums) {
+                    if (child.Kind == Element.Enums) {
                         if (ExpandEnums)
                             SetExportability(child);
-                    } else if (child.kind == Element.Structs) {
+                    } else if (child.Kind == Element.Structs) {
                         if (ExpandStructs)
                             SetExportability(child);
                     } else
@@ -96,7 +96,7 @@ namespace DocSharp {
                 export.summary = Utils.GetTag(node.summary, "summary", node);
                 export.returns = Utils.GetTag(node.summary, "returns", node);
             }
-            if (node.name == null || node.kind < Element.Functions)
+            if (node.name == null || node.Kind < Element.Functions)
                 ++exportables;
             foreach (MemberNode child in node.Nodes)
                 if (child.Tag == null || node.exportable)

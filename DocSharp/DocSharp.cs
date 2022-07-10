@@ -152,10 +152,10 @@ namespace DocSharp {
             MemberNode node = (MemberNode)sourceInfo.SelectedNode;
             if (node != null && node.name != null) {
                 Utils.AppendIfExists(info, "Attributes", node.attributes);
-                Utils.AppendIfExists(info, "Visibility", node.vis.ToString().ToLower());
-                if (node.kind == Element.Properties) {
-                    Utils.AppendIfExists(info, "Getter", node.getter.ToString().ToLower());
-                    Utils.AppendIfExists(info, "Setter", node.setter.ToString().ToLower());
+                Utils.AppendIfExists(info, "Visibility", node.Vis.ToString().ToLower());
+                if (node.Kind == Element.Properties) {
+                    Utils.AppendIfExists(info, "Getter", node.Getter.ToString().ToLower());
+                    Utils.AppendIfExists(info, "Setter", node.Setter.ToString().ToLower());
                 }
                 Utils.AppendIfExists(info, "Modifiers", node.modifiers);
                 Utils.AppendIfExists(info, "Type", node.type);
