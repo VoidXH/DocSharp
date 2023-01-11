@@ -45,6 +45,7 @@
             "<html>" +
                 "<head>" +
                     "<title>" + titleMarker + "</title><link rel=\"stylesheet\" href=\"" + cssMarker + "\" type=\"text/css\">" +
+                    "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1, shrink-to-fit=no\">" +
                 "</head>" +
                 "<body>" +
                     "<table class=\"" + mainTableClass + "\">" +
@@ -103,6 +104,15 @@ table {
 table tr td {
   text-align: left;
   vertical-align: top;
+}
+@media only screen and (max-width: 500px) {
+  .t1 {
+    display: none;
+  }
+  table tr td {
+    display: block;
+    padding: 10px;
+  }
 }";
     }
 }
