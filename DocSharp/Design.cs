@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Windows.Forms;
+using System.Web;
 
 namespace DocSharp {
     /// <summary>
@@ -144,8 +144,8 @@ namespace DocSharp {
             BlockStart();
             while (enumer.MoveNext()) {
                 MemberNode node = (MemberNode)enumer.Current;
-                StringBuilder link = new StringBuilder(node.type).Append(" <a href=\"")
-                    .Append(Utils.LocalLink(node)).Append("\">").Append(node.name).Append("</a>");
+                StringBuilder link = new StringBuilder(HttpUtility.HtmlEncode(node.type)).Append(" <a href=\"")
+                    .Append(Utils.LocalLink(node)).Append("\">").Append(HttpUtility.HtmlEncode(node.name)).Append("</a>");
                 BlockAppend(block, link.ToString(), Utils.QuickSummary(node.summary, node));
             }
             return block.Append("</table>").ToString();
@@ -196,10 +196,8 @@ namespace DocSharp {
 
             StringBuilder output = new StringBuilder("<h1>");
             if (node.name != null)
-                output.Append(node.type).Append(' ').Append(node.name);
-            else
-                output.Append(node.Name);
-            output.Append("</h1>");
+                output.Append(HttpUtility.HtmlEncode(node.type)).Append(' ');
+            output.Append(HttpUtility.HtmlEncode(node.name)).Append("</h1>");
 
             if (node.name != null) {
                 // Summary block
@@ -221,7 +219,8 @@ namespace DocSharp {
                 if (summary.Contains("</param>")) {
                     output.Append("<h1>Parameters</h1>").Append("<table>");
                     BlockStart();
-                    string[] definedParams = node.name.Substring(node.name.IndexOf('(') + 1).Split(',', ')');
+                    string safeName = HttpUtility.HtmlEncode(node.name);
+                    string[] definedParams = safeName.Substring(safeName.IndexOf('(') + 1).Split(',', ')');
                     string[] parameters;
                     while ((parameters = Utils.RemoveParam(ref summary)) != null) {
                         string paramType = string.Empty;
@@ -242,7 +241,7 @@ namespace DocSharp {
                                 }
                             }
                         }
-                        BlockAppend(output, paramType + " <b>" + parameters[0] + "</b>", parameters[1]);
+                        BlockAppend(output, HttpUtility.HtmlEncode(paramType) + " <b>" + parameters[0] + "</b>", parameters[1]);
                     }
                     output.Append("</table>");
                 }

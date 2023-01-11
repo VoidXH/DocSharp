@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Web;
 using System.Windows.Forms;
 
 namespace DocSharp {
@@ -158,7 +159,7 @@ namespace DocSharp {
                     Utils.AppendIfExists(info, "Setter", node.Setter.ToString().ToLower());
                 }
                 Utils.AppendIfExists(info, "Modifiers", node.modifiers);
-                Utils.AppendIfExists(info, "Type", node.type);
+                Utils.AppendIfExists(info, "Type", HttpUtility.HtmlEncode(node.type));
                 Utils.AppendIfExists(info, "Default value", node.defaultValue);
                 Utils.AppendIfExists(info, "Extends", node.extends);
                 if (node.summary.Length != 0)

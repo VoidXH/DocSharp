@@ -6,6 +6,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Web;
 using System.Windows.Forms;
 
 namespace DocSharp {
@@ -84,7 +85,7 @@ namespace DocSharp {
             List<string> chain = new List<string>();
             while (node != null) {
                 if (node.name != null)
-                    chain.Add(node.name);
+                    chain.Add(HttpUtility.HtmlEncode(node.name));
                 node = (MemberNode)node.Parent;
             }
             chain.Reverse();
@@ -230,6 +231,29 @@ namespace DocSharp {
             }
             return false;
         }
+
+        /// <summary>
+        /// Removes all occurences of a HTML tag.
+        /// </summary>
+        public static string RemoveHTMLTag(string source, string tag) {
+            while (true) {
+                int index = source.IndexOf('<' + tag);
+                if (index == -1) {
+                    break;
+                }
+                int index2 = source.IndexOf('>', index + tag.Length);
+                if (index2 == -1) {
+                    break;
+                }
+                source = source.Substring(0, index) + source.Substring(index2 + 1);
+            }
+            return tag[0] != '/' ? RemoveHTMLTag(source, '/' + tag) : source;
+        }
+
+        /// <summary>
+        /// Remove the links from a HTML code.
+        /// </summary>
+        public static string RemoveLinks(string source) => RemoveHTMLTag(source, "a");
 
         /// <summary>
         /// Remove the next parameter summary and return its name and description or null if there
