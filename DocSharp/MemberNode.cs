@@ -28,7 +28,7 @@ namespace DocSharp {
         public MemberNode(string text) : base(text) { }
 
         public static MemberNode MakeNamespace(string text) {
-            MemberNode node = new MemberNode(text) {
+            MemberNode node = new(text) {
                 Kind = Element.Namespaces,
                 name = text,
                 Name = text,
@@ -83,7 +83,7 @@ namespace DocSharp {
         /// Swaps the values of two code tree items.
         /// </summary>
         public void SwapWith(MemberNode other) {
-            MemberNode temp = new MemberNode(other.Text);
+            MemberNode temp = new(other.Text);
             temp.CopyFrom(other);
             other.CopyFrom(this);
             CopyFrom(temp);

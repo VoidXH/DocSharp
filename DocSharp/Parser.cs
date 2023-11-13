@@ -74,6 +74,7 @@ namespace DocSharp {
                 root.Nodes.Merge();
                 root.Nodes.NumberEnums();
                 root.Nodes.Sort();
+                root.Nodes.FillSummaries();
                 sourceInfo.EndUpdate();
             });
 

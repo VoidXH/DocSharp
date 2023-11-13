@@ -2,7 +2,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -38,7 +37,7 @@ namespace DocSharp {
     /// <summary>
     /// General utilities.
     /// </summary>
-    static class Utils {
+    static partial class Utils {
         /// <summary>
         /// If the value of a property is filled, add it in a new line to the target with a prefix.
         /// </summary>
@@ -47,8 +46,9 @@ namespace DocSharp {
         /// <param name="value">Value of the parameter called <paramref name="name"/></param>
         public static void AppendIfExists(StringBuilder target, string name, string value) {
             if (value.Length != 0) {
-                if (target.Length != 0)
+                if (target.Length != 0) {
                     target.AppendLine();
+                }
                 target.Append(name).Append(": ").Append(value);
             }
         }
@@ -58,10 +58,37 @@ namespace DocSharp {
         /// </summary>
         public static bool ArrayContains<T>(T[] array, T value) {
             int len = array.Length;
-            for (int i = 0; i < len; ++i)
-                if (array[i].Equals(value))
+            for (int i = 0; i < len; i++) {
+                if (array[i].Equals(value)) {
                     return true;
+                }
+            }
             return false;
+        }
+
+        /// <summary>
+        /// Find the first node in the project which matches a <paramref name="predicate"/>.
+        /// </summary>
+        public static MemberNode FindFirst(MemberNode source, Func<MemberNode, bool> predicate) {
+            while (source.Parent != null) {
+                source = (MemberNode)source.Parent;
+            }
+
+            MemberNode Proc(MemberNode source) {
+                foreach (MemberNode child in source.Nodes) {
+                    if (predicate(child)) {
+                        return child;
+                    }
+
+                    MemberNode result = Proc(child);
+                    if (result != null) {
+                        return result;
+                    }
+                }
+                return null;
+            }
+
+            return Proc(source);
         }
 
         /// <summary>
@@ -70,11 +97,12 @@ namespace DocSharp {
         /// </summary>
         public static void FillWithPHP(DirectoryInfo target) {
             string targetName = target.FullName + "\\index.php";
-            if (!File.Exists(targetName))
+            if (!File.Exists(targetName)) {
                 File.Create(targetName).Close();
+            }
             DirectoryInfo[] subdirs = target.GetDirectories();
             int subdirCount = subdirs.Length;
-            for (int i = 0; i < subdirCount; ++i)
+            for (int i = 0; i < subdirCount; i++)
                 FillWithPHP(subdirs[i]);
         }
 
@@ -82,10 +110,11 @@ namespace DocSharp {
         /// Get the fully qualified name of a node.
         /// </summary>
         public static string FullyQualifiedName(MemberNode node) {
-            List<string> chain = new List<string>();
+            List<string> chain = new();
             while (node != null) {
-                if (node.name != null)
+                if (node.name != null) {
                     chain.Add(HttpUtility.HtmlEncode(node.name));
+                }
                 node = (MemberNode)node.Parent;
             }
             chain.Reverse();
@@ -97,9 +126,11 @@ namespace DocSharp {
         /// </summary>
         public static MemberNode GetNodeByText(MemberNode parent, string text) {
             IEnumerator enumer = parent.Nodes.GetEnumerator();
-            while (enumer.MoveNext())
-                if (((MemberNode)enumer.Current).Name.Equals(text))
+            while (enumer.MoveNext()) {
+                if (((MemberNode)enumer.Current).Name.Equals(text)) {
                     return (MemberNode)enumer.Current;
+                }
+            }
             return null;
         }
 
@@ -111,13 +142,15 @@ namespace DocSharp {
         /// <param name="node">Code element</param>
         public static string GetTag(string source, string tag, MemberNode node) {
             int startPos = source.IndexOf('<' + tag), endPos = source.IndexOf("</" + tag);
-            if (startPos == -1 || endPos == -1)
+            if (startPos == -1 || endPos == -1) {
                 return string.Empty;
+            }
             int tagLength = tag.Length + 2;
             string output = source.Substring(startPos + tagLength, endPos - startPos - tagLength).Trim();
             ReplaceReferences(ref output, node);
-            if (output.Contains("\n"))
-                output = Regex.Replace(output, @"\r\n?|\n", "<br />");
+            if (output.Contains('\n')) {
+                output = newLineToBr().Replace(output, "<br />");
+            }
             return output;
         }
 
@@ -127,8 +160,17 @@ namespace DocSharp {
         /// <param name="text">Text to indent</param>
         /// <param name="chars">Amount of spaces used in indention</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static string Indent(string text, int chars) {
-            return text.Replace("\n", '\n' + new string(' ', chars));
+        public static string Indent(string text, int chars) =>
+            text.Replace("\n", '\n' + new string(' ', chars));
+
+        /// <summary>
+        /// Finds the base class which was inherited, and get its entire XML documentation.
+        /// </summary>
+        public static void InheritDocumentation(MemberNode node) {
+            MemberNode parent = FindFirst(node, parent => parent.Name.Equals(node.Name) && parent.summary.StartsWith("<summary>"));
+            if (parent != null) {
+                node.summary = parent.summary;
+            }
         }
 
         /// <summary>
@@ -136,10 +178,8 @@ namespace DocSharp {
         /// </summary>
         /// <param name="to">Target code element</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static string LocalLink(MemberNode to) {
-            return new StringBuilder(to.Name).Append(to.Kind < Element.Functions ? "\\index." : ".")
-                .Append(Design.extension).ToString();
-        }
+        public static string LocalLink(MemberNode to) =>
+            new StringBuilder(to.Name).Append(to.Kind < Element.Functions ? "\\index." : ".").Append(Design.extension).ToString();
 
         /// <summary>
         /// Assembles the internally used name and filename for an element.
@@ -147,10 +187,11 @@ namespace DocSharp {
         /// <param name="name">Name of the node (for functions, the function name only)</param>
         /// <param name="tryCount">The number of times this filename has been tried</param>
         static string NodeName(string name, int tryCount) {
-            StringBuilder result = new StringBuilder(name);
+            StringBuilder result = new(name);
             result.Replace("*", "Mul").Replace("/", "Div").Replace("<", "Lt").Replace(">", "Gt");
-            if (tryCount != 0)
+            if (tryCount != 0) {
                 result.Append(tryCount);
+            }
             return result.ToString();
         }
 
@@ -161,10 +202,11 @@ namespace DocSharp {
         public static void MakeNodeName(MemberNode node) {
             if (node.Name.Equals(string.Empty)) {
                 int parenthesis = node.Text.IndexOf('(');
-                string nameOnly = parenthesis == -1 ? node.Text : node.Text.Substring(0, parenthesis);
+                string nameOnly = parenthesis == -1 ? node.Text : node.Text[..parenthesis];
                 int angleBracket = nameOnly.IndexOf('<');
-                if (angleBracket != -1)
-                    nameOnly = nameOnly.Substring(0, angleBracket);
+                if (angleBracket != -1) {
+                    nameOnly = nameOnly[..angleBracket];
+                }
                 int tryCount = 0;
                 while (true) {
                     string tryWith = NodeName(nameOnly, tryCount++);
@@ -181,8 +223,9 @@ namespace DocSharp {
                     }
                 }
             }
-            if (node.Vis != Visibility.Default)
+            if (node.Vis != Visibility.Default) {
                 node.Text = Constants.visibilities[(int)node.Vis] + node.Text;
+            }
         }
 
         /// <summary>
@@ -197,7 +240,7 @@ namespace DocSharp {
                     target += (string)enumer.Current;
                 }
             }
-            source.TrimStart();
+            source = source.TrimStart();
         }
 
         /// <summary>
@@ -207,9 +250,8 @@ namespace DocSharp {
         public static string QuickSummary(string fullSummary) {
             int summaryStart = fullSummary.IndexOf("<summary>") + 9,
                 summaryLength = fullSummary.IndexOf("</summary>") - summaryStart;
-            return summaryStart != 8 && summaryLength > 0 ? Regex
-                .Replace(fullSummary.Substring(summaryStart, summaryLength)
-                .Replace("<see cref=\"", string.Empty).Replace("\"/>", ""), @"\r\n?|\n", " ").Trim() : string.Empty;
+            return summaryStart != 8 && summaryLength > 0 ? newLineToBr().Replace(fullSummary.Substring(summaryStart, summaryLength)
+                .Replace("<see cref=\"", string.Empty).Replace("\"/>", ""), " ").Trim() : string.Empty;
         }
 
         /// <summary>
@@ -245,7 +287,7 @@ namespace DocSharp {
                 if (index2 == -1) {
                     break;
                 }
-                source = source.Substring(0, index) + source.Substring(index2 + 1);
+                source = source[..index] + source[(index2 + 1)..];
             }
             return tag[0] != '/' ? RemoveHTMLTag(source, '/' + tag) : source;
         }
@@ -268,10 +310,10 @@ namespace DocSharp {
             int nameStart = source.IndexOf('"', namePos) + 1; if (nameStart == -1) return null;
             int nameEnd = source.IndexOf('"', nameStart); if (nameEnd == -1) return null;
             string[] output = new string[2] {
-                source.Substring(nameStart, nameEnd - nameStart),
+                source[nameStart..nameEnd ],
                 source.Substring(cutPos + 1, endPos - cutPos - 1)
             };
-            source = source.Substring(0, startPos).TrimEnd() + source.Substring(endPos + 8).TrimStart();
+            source = source[..startPos].TrimEnd() + source[(endPos + 8)..].TrimStart();
             return output;
         }
 
@@ -282,21 +324,22 @@ namespace DocSharp {
         public static string RemoveParamNames(string signature) {
             int paramStart, paramEnd;
             if ((paramStart = signature.IndexOf('(') + 1) != 0 && (paramEnd = signature.IndexOf(')', paramStart)) != -1) {
-                string parameters = signature.Substring(paramStart, paramEnd - paramStart);
+                string parameters = signature[paramStart..paramEnd];
                 string paramTypes = string.Empty;
                 string[] fullParams = parameters.Split(',');
                 int paramCount = fullParams.Length;
-                for (int param = 0; param < paramCount; ++param) {
+                for (int param = 0; param < paramCount; param++) {
                     fullParams[param] = fullParams[param].Trim();
-                    if (fullParams[param].Contains('='))
-                        fullParams[param] = fullParams[param].Substring(0, fullParams[param].IndexOf('=')).TrimEnd();
+                    if (fullParams[param].Contains('=')) {
+                        fullParams[param] = fullParams[param][..fullParams[param].IndexOf('=')].TrimEnd();
+                    }
                     paramTypes += (fullParams[param].Contains(' ') ?
-                        fullParams[param].Substring(0, fullParams[param].LastIndexOf(' ')) :
+                        fullParams[param][..fullParams[param].LastIndexOf(' ')] :
                         fullParams[param]) + ", ";
                 }
-                if (paramTypes.Length != 0)
-                    signature = signature.Substring(0, paramStart) + paramTypes.Substring(0, paramTypes.Length - 2)
-                        + signature.Substring(paramEnd);
+                if (paramTypes.Length != 0) {
+                    signature = signature[..paramStart] + paramTypes[..^2] + signature[paramEnd..];
+                }
             }
             return signature;
         }
@@ -313,10 +356,11 @@ namespace DocSharp {
                 return string.Empty;
             int tagLength = tag.Length + 2;
             string output = source.Substring(startPos + tagLength, endPos - startPos - tagLength).Trim();
-            source = source.Substring(0, startPos) + source.Substring(endPos + tagLength + 1);
+            source = source[..startPos] + source[(endPos + tagLength + 1)..];
             ReplaceReferences(ref output, node);
-            if (output.Contains("\n"))
-                output = Regex.Replace(output, @"\r\n?|\n", "<br />");
+            if (output.Contains('\n')) {
+                output = newLineToBr().Replace(output, "<br />");
+            }
             return output;
         }
 
@@ -347,12 +391,13 @@ namespace DocSharp {
                         }
                     }
                     lookingFor = (MemberNode)lookingFor.Parent;
-                    if (firstRun)
+                    if (firstRun) {
                         firstRun = false;
-                    else
+                    } else {
                         path += "..\\";
+                    }
                 }
-                source = source.Substring(0, seePos) + reference + source.Substring(seeEnd + 1);
+                source = source[..seePos] + reference + source[(seeEnd + 1)..];
             }
         }
 
@@ -361,9 +406,13 @@ namespace DocSharp {
         /// </summary>
         public static int SpacesBefore(string text, int index) {
             int count = 0;
-            for (int i = index - 1; i >= 0 && text[index] == ' '; --i)
-                ++count;
+            for (int i = index - 1; i >= 0 && text[index] == ' '; i--) {
+                count++;
+            }
             return count;
         }
+
+        [GeneratedRegex("\\r\\n?|\\n")]
+        private static partial Regex newLineToBr();
     }
 }
