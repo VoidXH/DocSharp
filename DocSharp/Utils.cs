@@ -167,7 +167,7 @@ namespace DocSharp {
         /// Finds the base class which was inherited, and get its entire XML documentation.
         /// </summary>
         public static void InheritDocumentation(MemberNode node) {
-            MemberNode parent = FindFirst(node, parent => parent.Name.Equals(node.Name) && parent.summary.StartsWith("<summary>"));
+            MemberNode parent = FindFirst(node, parent => parent.Name.Equals(node.Name) && parent.summary.Contains("<summary>"));
             if (parent != null) {
                 node.summary = parent.summary;
             }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Drawing;
 using System.Windows.Forms;
 
 namespace DocSharp {
@@ -109,6 +110,7 @@ namespace DocSharp {
 
         /// <summary>
         /// Finds the &lt;inheritdoc/&gt; tags, and replaces them with the summary that should be inherited.
+        /// Additionally, paints the background of items without summaries in yellow.
         /// </summary>
         public static void FillSummaries(this TreeNodeCollection items) {
             foreach (MemberNode item in items) {
@@ -120,6 +122,10 @@ namespace DocSharp {
                     Process(child);
                     if (child.summary.StartsWith("<inheritdoc/>")) {
                         Utils.InheritDocumentation(child);
+                    }
+
+                    if (child.Kind != Element.Namespaces && !child.summary.Contains("<summary>")) {
+                        child.BackColor = Color.Yellow;
                     }
                 }
             }
