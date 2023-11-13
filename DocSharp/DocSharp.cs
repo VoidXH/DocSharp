@@ -1,8 +1,7 @@
 ﻿using System;
-using System.Diagnostics;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Text;
 using System.Web;
 using System.Windows.Forms;
@@ -15,6 +14,7 @@ namespace DocSharp {
         readonly TaskEngine task;
 
         string lastLoaded = string.Empty;
+
         MemberNode import;
 
         /// <summary>
@@ -22,15 +22,12 @@ namespace DocSharp {
         /// </summary>
         void LoadRecent(string recent) {
             string newRecents = Properties.Settings.Default.Recents;
-            if (newRecents.Length == 0)
+            if (newRecents.Length == 0) {
                 Properties.Settings.Default.Recents = recent;
-            else {
+            } else {
                 int recentPos = newRecents.IndexOf(recent);
-                if (recentPos == -1)
-                    Properties.Settings.Default.Recents = $"{recent}\n{newRecents}";
-                else
-                    Properties.Settings.Default.Recents = string.Format("{0}\n{1}{2}", recent,
-                        newRecents.Substring(0, recentPos), newRecents.Substring(recentPos + recent.Length + 1));
+                Properties.Settings.Default.Recents = recentPos == -1 ? $"{recent}\n{newRecents}" : string.Format("{0}\n{1}{2}", recent,
+                    newRecents[..recentPos], newRecents[(recentPos + recent.Length + 1)..]);
             }
             Properties.Settings.Default.Save();
             LoadRecents();
@@ -50,10 +47,11 @@ namespace DocSharp {
             string[] recents = Properties.Settings.Default.Recents.Split('\n');
             for (int i = 0; i < recents.Length - 1; ++i) {
                 ToolStripItem recent = new ToolStripMenuItem(recents[i]);
-                if (Directory.Exists(recents[i]))
+                if (Directory.Exists(recents[i])) {
                     recent.Click += LoadRecent;
-                else
+                } else {
                     recent.Enabled = false;
+                }
                 loadRecentToolStripMenuItem.DropDownItems.Add(recent);
             }
         }
@@ -72,6 +70,8 @@ namespace DocSharp {
             extension.Text = Properties.Settings.Default.FileExtension;
             defines.Text = Properties.Settings.Default.DefineConstants;
             phpFillers.Checked = Properties.Settings.Default.PhpFillers;
+            gitignore.Checked = Properties.Settings.Default.gitignore;
+            ignore.Text = Properties.Settings.Default.ignore;
             exportInternal.Checked = Properties.Settings.Default.VisibilityInternal;
             exportPrivate.Checked = Properties.Settings.Default.VisibilityPrivate;
             exportProtected.Checked = Properties.Settings.Default.VisibilityProtected;
@@ -81,13 +81,15 @@ namespace DocSharp {
         /// <summary>
         /// Save settings when Doc# is closed.
         /// </summary>
-        private void DocSharp_FormClosed(object sender, FormClosedEventArgs e) {
+        void DocSharp_FormClosed(object _, FormClosedEventArgs e) {
             Properties.Settings.Default.ExpandEnums = expandEnums.Checked;
             Properties.Settings.Default.ExpandStructs = expandStructs.Checked;
             Properties.Settings.Default.ExportAttributes = exportAttributes.Checked;
             Properties.Settings.Default.FileExtension = extension.Text;
             Properties.Settings.Default.DefineConstants = defines.Text;
             Properties.Settings.Default.PhpFillers = phpFillers.Checked;
+            Properties.Settings.Default.gitignore = gitignore.Checked;
+            Properties.Settings.Default.ignore = ignore.Text;
             Properties.Settings.Default.VisibilityInternal = exportInternal.Checked;
             Properties.Settings.Default.VisibilityPrivate = exportPrivate.Checked;
             Properties.Settings.Default.VisibilityProtected = exportProtected.Checked;
@@ -113,31 +115,39 @@ namespace DocSharp {
             currentDefines.Text = "Code loaded with: " + (defines.Equals(string.Empty) ? "-" : defines);
             sourceInfo.BeginUpdate();
             sourceInfo.Nodes.Clear();
-            import = MemberNode.MakeNamespace(path.Substring(path.LastIndexOf('\\') + 1));
+            import = MemberNode.MakeNamespace(path[(path.LastIndexOf('\\') + 1)..]);
             sourceInfo.Nodes.Add(import);
-            Parser parser = new Parser(path, import, sourceInfo, defines, task);
+
+            List<string> excluded = new();
+            if (!string.IsNullOrEmpty(ignore.Text)) {
+                excluded.AddRange(ignore.Text.Split(';'));
+            }
+            string gitignorePath = Path.Combine(path, ".gitignore");
+            if (gitignore.Checked && File.Exists(gitignorePath)) {
+                excluded.AddRange(File.ReadAllLines(gitignorePath));
+            }
+            Parser parser = new(path, import, sourceInfo, defines, excluded.ToArray(), task);
             task.Run(parser.Process);
         }
 
         /// <summary>
         /// Reload the code with new constants
         /// </summary>
-        void ReloadConstants_Click(object sender, EventArgs e) {
-            LoadFrom(lastLoaded, defines.Text);
-        }
+        void ReloadConstants_Click(object _, EventArgs e) => LoadFrom(lastLoaded, defines.Text);
 
         /// <summary>
         /// Open the directory picker for loading code.
         /// </summary>
-        void LoadSourceToolStripMenuItem_Click(object sender, EventArgs e) {
+        void LoadSourceToolStripMenuItem_Click(object _, EventArgs e) {
             if (folderDialog.ShowDialog() == DialogResult.OK) {
                 LoadFrom(folderDialog.SelectedPath, defines.Text);
-                if (Properties.Settings.Default.Recents.Contains(folderDialog.SelectedPath + '\n'))
+                if (Properties.Settings.Default.Recents.Contains(folderDialog.SelectedPath + '\n')) {
                     LoadRecent(folderDialog.SelectedPath);
-                else {
+                } else {
                     string newRecents = folderDialog.SelectedPath + '\n' + Properties.Settings.Default.Recents;
-                    while (newRecents.Count(c => c == '\n') > 10)
-                        newRecents = newRecents.Substring(0, newRecents.LastIndexOf('\n'));
+                    while (newRecents.Count(c => c == '\n') > 10) {
+                        newRecents = newRecents[..newRecents.LastIndexOf('\n')];
+                    }
                     Properties.Settings.Default.Recents = newRecents;
                     Properties.Settings.Default.Save();
                     LoadRecents();
@@ -148,8 +158,8 @@ namespace DocSharp {
         /// <summary>
         /// Display the selected code element's properties.
         /// </summary>
-        private void SourceInfo_AfterSelect(object sender, TreeViewEventArgs e) {
-            StringBuilder info = new StringBuilder();
+        private void SourceInfo_AfterSelect(object _, TreeViewEventArgs e) {
+            StringBuilder info = new();
             MemberNode node = (MemberNode)sourceInfo.SelectedNode;
             if (node != null && node.name != null) {
                 Utils.AppendIfExists(info, "Attributes", node.attributes);
@@ -162,8 +172,9 @@ namespace DocSharp {
                 Utils.AppendIfExists(info, "Type", HttpUtility.HtmlEncode(node.type));
                 Utils.AppendIfExists(info, "Default value", node.defaultValue);
                 Utils.AppendIfExists(info, "Extends", node.extends);
-                if (node.summary.Length != 0)
+                if (node.summary.Length != 0) {
                     info.AppendLine().AppendLine().Append(Utils.QuickSummary(node.summary));
+                }
             }
             infoLabel.Text = info.ToString();
         }
@@ -171,7 +182,7 @@ namespace DocSharp {
         /// <summary>
         /// Start documentation generation process.
         /// </summary>
-        void GenerateButton_Click(object sender, EventArgs e) {
+        void GenerateButton_Click(object _, EventArgs e) {
             if (import == null) {
                 MessageBox.Show("Please load a source first.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
@@ -181,13 +192,13 @@ namespace DocSharp {
                 return;
             }
             if (folderDialog.ShowDialog() == DialogResult.OK) {
-                DirectoryInfo dir = new DirectoryInfo(folderDialog.SelectedPath);
+                DirectoryInfo dir = new(folderDialog.SelectedPath);
                 if ((dir.GetDirectories().Length == 0 && dir.GetDirectories().Length == 0) ||
                     MessageBox.Show(string.Format("The folder ({0}) is not empty. Continue generation anyway?",
                     folderDialog.SelectedPath), "Warning", MessageBoxButtons.YesNo) == DialogResult.Yes) {
                     Design.extension = extension.Text.Equals(string.Empty) ? "html" : extension.Text;
                     Design.exportAttributes = exportAttributes.Checked;
-                    Exporter exporter = new Exporter(task) {
+                    Exporter exporter = new(task) {
                         GenerateFillers = phpFillers.Checked && !extension.Text.Equals("php"),
                         ExportPublic = exportPublic.Checked,
                         ExportInternal = exportInternal.Checked,
@@ -204,10 +215,7 @@ namespace DocSharp {
         /// <summary>
         /// Show "About".
         /// </summary>
-        void AboutToolStripMenuItem_Click(object sender, EventArgs e) {
-            MessageBox.Show(string.Format("Doc# v{0} by VoidX\n{1}",
-                FileVersionInfo.GetVersionInfo(Assembly.GetExecutingAssembly().Location).FileVersion,
-                "http://en.sbence.hu/"), "About");
-        }
+        void AboutToolStripMenuItem_Click(object _, EventArgs e) =>
+            MessageBox.Show(string.Format("Doc# v1.1 by VoidX\n\"http://en.sbence.hu/\""), "About");
     }
 }

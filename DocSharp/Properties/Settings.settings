@@ -35,5 +35,11 @@
     <Setting Name="DefineConstants" Type="System.String" Scope="User">
       <Value Profile="(Default)">RELEASE; MASTER</Value>
     </Setting>
+    <Setting Name="gitignore" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
+    <Setting Name="ignore" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
   </Settings>
 </SettingsFile>

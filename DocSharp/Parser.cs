@@ -2,18 +2,20 @@
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Windows.Forms;
 
 namespace DocSharp {
     /// <summary>
     /// Handles loading the code from files into nodes.
     /// </summary>
-    class Parser {
+    partial class Parser {
         readonly string path;
         readonly MemberNode root;
         readonly TreeView sourceInfo;
         readonly Font italic, underline, bold;
         readonly string defines;
+        readonly string[] excluded;
         readonly TaskEngine engine;
 
         /// <summary>
@@ -23,8 +25,9 @@ namespace DocSharp {
         /// <param name="root">Root node of the source tree</param>
         /// <param name="sourceInfo">Source code discovery tree</param>
         /// <param name="defines">Defined constants</param>
+        /// <param name="excluded">Paths beginning with these strings will not be parsed</param>
         /// <param name="engine">Task engine for process display</param>
-        public Parser(string path, MemberNode root, TreeView sourceInfo, string defines, TaskEngine engine = null) {
+        public Parser(string path, MemberNode root, TreeView sourceInfo, string defines, string[] excluded, TaskEngine engine) {
             this.path = path;
             this.root = root;
             this.sourceInfo = sourceInfo;
@@ -32,6 +35,12 @@ namespace DocSharp {
             underline = new Font(sourceInfo.Font, FontStyle.Underline);
             bold = new Font(sourceInfo.Font, FontStyle.Bold);
             this.defines = defines;
+
+            this.excluded = excluded;
+            for (int i = 0; i < excluded.Length; i++) {
+                excluded[i] = Path.Combine(path, excluded[i].Replace('/', '\\'));
+            }
+
             this.engine = engine;
         }
 
@@ -43,7 +52,9 @@ namespace DocSharp {
                 engine.UpdateProgressBar(0);
                 engine.UpdateStatus("Searching for .cs files...");
             }
-            string[] files = Directory.GetFiles(path, "*.cs", SearchOption.AllDirectories);
+            string[] files = Directory.GetFiles(path, "*.cs", SearchOption.AllDirectories).
+                Where(x =>
+                !excluded.Any(y => x.StartsWith(y))).ToArray();
 
             int loc = 0;
             for (int i = 0; i < files.Length; ++i) {
@@ -81,11 +92,11 @@ namespace DocSharp {
             int bracketPos;
             while ((bracketPos = parse.LastIndexOf('(')) != -1) {
                 int endBracket = parse.IndexOf(')', bracketPos + 1);
-                parse = parse.Substring(0, bracketPos) +
+                parse = parse[..bracketPos] +
                     (ParseSimpleIf(parse.Substring(bracketPos + 1, endBracket - bracketPos - 1), defineConstants)
-                    ? _true : _false) + parse.Substring(endBracket + 1);
+                    ? _true : _false) + parse[(endBracket + 1)..];
             }
-            string[] split = System.Text.RegularExpressions.Regex.Split(parse, splitRegex);
+            string[] split = splitRegex().Split(parse);
             int arrPos = 0, splitEnd = split.Length - 1;
             while (arrPos < splitEnd) {
                 bool first = split[arrPos].Equals(_true) || Utils.ArrayContains(defineConstants, split[arrPos]),
@@ -160,7 +171,7 @@ namespace DocSharp {
                                 }
                             }
 
-                            string cutout = code.Substring(lastEnding, i - lastEnding).Trim();
+                            string cutout = code[lastEnding..i].Trim();
                             lastEnding = i + 1;
                             if (inRemovableBlock) {
                                 bool getter = cutout.EndsWith(_getter), setter = cutout.EndsWith(_setter);
@@ -183,7 +194,7 @@ namespace DocSharp {
                                 int commentEnd = cutout.IndexOf(_commentBlockEnd, commentBlockStart + 2) + 2;
                                 if (commentEnd == 1)
                                     break;
-                                cutout = cutout.Substring(0, commentBlockStart) + cutout.Substring(commentEnd);
+                                cutout = cutout[..commentBlockStart] + cutout[commentEnd..];
                             }
 
                             if (cutout.StartsWith(_using))
@@ -199,22 +210,22 @@ namespace DocSharp {
                                 break;
                             }
 
-                            if (cutout.Length > 0 && cutout[cutout.Length - 1] == '=')
+                            if (cutout.Length > 0 && cutout[^1] == '=')
                                 cutout = cutout.Remove(cutout.Length - 2, 1).TrimEnd();
                             int lambda = cutout.IndexOf(_lambda);
                             if (lambda >= 0)
-                                cutout = cutout.Substring(0, lambda);
+                                cutout = cutout[..lambda];
 
                             // Attributes
                             string attributes = string.Empty;
                             while (cutout.StartsWith(_indexStart)) {
                                 int endPos = cutout.IndexOf(_indexEnd);
-                                string between = cutout.Substring(1, endPos - 1);
+                                string between = cutout[1..endPos];
                                 if (attributes.Equals(string.Empty))
                                     attributes = between;
                                 else
                                     attributes = string.Format("{0}, {1}", attributes, between);
-                                cutout = cutout.Substring(endPos + 1).TrimStart();
+                                cutout = cutout[(endPos + 1)..].TrimStart();
                             }
 
                             // Default value
@@ -223,8 +234,8 @@ namespace DocSharp {
                             while ((eqPos = cutout.IndexOf('=', eqPos + 1)) != -1) {
                                 // Not a parameter
                                 if (cutout.LastIndexOf('(', eqPos) == -1 || cutout.IndexOf(')', eqPos) == -1) {
-                                    defaultValue = cutout.Substring(eqPos + 1).TrimStart();
-                                    cutout = cutout.Substring(0, eqPos).TrimEnd();
+                                    defaultValue = cutout[(eqPos + 1)..].TrimStart();
+                                    cutout = cutout[..eqPos].TrimEnd();
                                     break;
                                 }
                             }
@@ -246,14 +257,14 @@ namespace DocSharp {
                             int spaceIndex = -1;
                             while ((spaceIndex = cutout.IndexOf(' ', spaceIndex + 1)) != -1) {
                                 // Not just the delegate word
-                                if ((spaceIndex == -1 || !cutout.Substring(0, spaceIndex).Equals(_delegate)) &&
+                                if ((spaceIndex == -1 || !cutout[..spaceIndex].Equals(_delegate)) &&
                                     // Not in a template type
                                     (cutout.LastIndexOf('<', spaceIndex) == -1 || cutout.IndexOf('>', spaceIndex) == -1)) {
-                                    type = cutout.Substring(0, spaceIndex);
+                                    type = cutout[..spaceIndex];
                                     if (type.IndexOf('(') != -1)
                                         type = constructor;
                                     else
-                                        cutout = cutout.Substring(spaceIndex).TrimStart();
+                                        cutout = cutout[spaceIndex..].TrimStart();
                                     break;
                                 }
                             }
@@ -269,8 +280,8 @@ namespace DocSharp {
                             string extends = string.Empty;
                             int extensionIndex = cutout.IndexOf(':');
                             if (extensionIndex != -1) {
-                                extends = cutout.Substring(extensionIndex + 1).TrimStart();
-                                cutout = cutout.Substring(0, extensionIndex).TrimEnd();
+                                extends = cutout[(extensionIndex + 1)..].TrimStart();
+                                cutout = cutout[..extensionIndex].TrimEnd();
                             }
 
                             // Default visibility
@@ -319,13 +330,14 @@ namespace DocSharp {
                                 // "int a, b;" case, copy tags
                                 else if (type.Equals(string.Empty) && newNode.Parent != null && newNode.Parent.Nodes.Count > 1
                                     && !cutout.Contains(((MemberNode)newNode.Parent).name)) { // Not constructor
-                                    MemberNode lastNode = (MemberNode)newNode.Parent.Nodes[newNode.Parent.Nodes.Count - 2];
+                                    MemberNode lastNode = (MemberNode)newNode.Parent.Nodes[^2];
                                     newNode.NodeFont = lastNode.NodeFont;
                                     newNode.CopyFrom(lastNode, false);
                                     newNode.defaultValue = defaultValue;
                                     newNode.name = cutout;
-                                    if (!string.IsNullOrEmpty(summary))
+                                    if (!string.IsNullOrEmpty(summary)) {
                                         newNode.summary = summary;
+                                    }
                                     newNode.export = new ExportInfo();
                                 } else {
                                     newNode.name = cutout;
@@ -388,17 +400,17 @@ namespace DocSharp {
                         break;
                     case '\n':
                         if (preprocessorLine) {
-                            string line = code.Substring(lastEnding, i - lastEnding).Trim();
+                            string line = code[lastEnding..i].Trim();
                             if (line.StartsWith(_define)) {
-                                string defined = line.Substring(line.IndexOf(' ')).TrimStart();
+                                string defined = line[line.IndexOf(' ')..].TrimStart();
                                 Array.Resize(ref defineConstants, ++defineCount);
                                 defineConstants[defineCount - 1] = defined;
                             } else if (line.StartsWith(_if) || line.StartsWith(_elif)) {
                                 int commentPos;
                                 if ((commentPos = line.IndexOf("//")) != -1)
-                                    line = line.Substring(0, commentPos).TrimEnd();
+                                    line = line[..commentPos].TrimEnd();
                                 preprocessorSkip =
-                                    !ParseSimpleIf(line.Substring(line.IndexOf(' ')).TrimStart(), defineConstants);
+                                    !ParseSimpleIf(line[line.IndexOf(' ')..].TrimStart(), defineConstants);
                             } else if (line.StartsWith(_endif))
                                 preprocessorSkip = false;
                             preprocessorLine = false;
@@ -408,7 +420,7 @@ namespace DocSharp {
                             lastEnding = i + 1;
                         }
                         if (summaryLine) {
-                            summary += code.Substring(lastSlash + 1, i - lastSlash - 1).Trim() + '\n';
+                            summary += code[(lastSlash + 1)..i].Trim() + '\n';
                             summaryLine = false;
                         }
                         ++loc;
@@ -420,7 +432,7 @@ namespace DocSharp {
             return loc;
         }
 
-        const string splitRegex = @"\s+", _commentBlockStart = "/*", _commentBlockEnd = "*/", _indexStart = "[", _indexEnd = "]";
+        const string _commentBlockStart = "/*", _commentBlockEnd = "*/", _indexStart = "[", _indexEnd = "]";
         const string _public = "public", _internal = "internal", _protected = "protected", _private = "private";
         const string _getter = "get", _setter = "set";
         internal const string _abstract = "abstract", _partial_ = "partial ", _static = "static", _using = "using";
@@ -428,5 +440,8 @@ namespace DocSharp {
         const string constructor = "Constructor", _delegate = "delegate";
         const string _true = "true", _false = "false", _and = "&&", _lambda = "=>";
         const string _define = "#define", _if = "#if", _elif = "#elif", _endif = "#endif";
+
+        [GeneratedRegex("\\s+")]
+        private static partial Regex splitRegex();
     }
 }
