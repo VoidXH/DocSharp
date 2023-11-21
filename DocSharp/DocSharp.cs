@@ -118,9 +118,9 @@ namespace DocSharp {
             import = MemberNode.MakeNamespace(path[(path.LastIndexOf('\\') + 1)..]);
             sourceInfo.Nodes.Add(import);
 
-            List<string> excluded = new();
+            List<string> excluded = [];
             if (!string.IsNullOrEmpty(ignore.Text)) {
-                excluded.AddRange(ignore.Text.Split(';'));
+                excluded.AddRange(ignore.Text.Split(';').Select(x => x.Trim()));
             }
             string gitignorePath = Path.Combine(path, ".gitignore");
             if (gitignore.Checked && File.Exists(gitignorePath)) {

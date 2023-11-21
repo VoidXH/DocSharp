@@ -7,7 +7,7 @@ namespace DocSharp {
     /// Progress reporter and job handler.
     /// </summary>
     public class TaskEngine {
-        readonly static TimeSpan lazyStatusDelta = new TimeSpan(0, 0, 1);
+        readonly static TimeSpan lazyStatusDelta = new(0, 0, 1);
 
         Task operation;
         ToolStripProgressBar progressBar;
@@ -25,8 +25,7 @@ namespace DocSharp {
         public int Progress {
             get {
                 int val = -1;
-                if (progressBar != null)
-                    progressBar.GetCurrentParent().Invoke((MethodInvoker)delegate { val = progressBar.Value; });
+                progressBar?.GetCurrentParent().Invoke((MethodInvoker)delegate { val = progressBar.Value; });
                 return val;
             }
         }
