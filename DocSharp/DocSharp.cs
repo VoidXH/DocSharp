@@ -216,6 +216,6 @@ namespace DocSharp {
         /// Show "About".
         /// </summary>
         void AboutToolStripMenuItem_Click(object _, EventArgs e) =>
-            MessageBox.Show(string.Format("Doc# v1.1 by VoidX\n\"http://en.sbence.hu/\""), "About");
+            MessageBox.Show(string.Format("Doc# v1.1 by VoidX\nhttp://en.sbence.hu/"), "About");
     }
 }
