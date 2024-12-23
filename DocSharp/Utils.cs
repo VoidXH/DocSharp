@@ -365,13 +365,23 @@ namespace DocSharp {
         }
 
         /// <summary>
-        /// Replace references in a description with links.
+        /// Replace &quot;see&quot; and &quot;paramref&quot; references in a description with links.
         /// </summary>
         /// <param name="source">Description</param>
         /// <param name="node">Code element</param>
         static void ReplaceReferences(ref string source, MemberNode node) {
+            ReplaceReferencesProc(ref source, node, "<see");
+            ReplaceReferencesProc(ref source, node, "<paramref");
+        }
+
+        /// <summary>
+        /// Replace references that are marked with a tag beginning <paramref name="marker"/> in a description with links.
+        /// </summary>
+        /// <param name="source">Description</param>
+        /// <param name="node">Code element</param>
+        static void ReplaceReferencesProc(ref string source, MemberNode node, string marker) {
             int seePos;
-            while ((seePos = source.IndexOf("<see")) != -1) {
+            while ((seePos = source.IndexOf(marker)) != -1) {
                 int refStart = source.IndexOf('"', seePos); if (refStart == -1) return;
                 int refEnd = source.IndexOf('"', refStart + 1); if (refEnd == -1) return;
                 int seeEnd = source.IndexOf('>', seePos); if (seeEnd == -1) return;

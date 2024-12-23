@@ -465,7 +465,7 @@ namespace DocSharp {
         const string _public = "public", _internal = "internal", _protected = "protected", _private = "private";
         const string _getter = "get", _setter = "set";
         internal const string _abstract = "abstract", _partial_ = "partial ", _static = "static", _using = "using";
-        const string _class = "class", _enum = "enum", _interface = "interface", _namespace = "namespace", _struct = "struct";
+        internal const string _class = "class", _enum = "enum", _interface = "interface", _namespace = "namespace", _struct = "struct";
         const string constructor = "Constructor", _delegate = "delegate";
         const string _true = "true", _false = "false", _and = "&&", _lambda = "=>";
         const string _define = "#define", _if = "#if", _elif = "#elif", _endif = "#endif";

@@ -31,14 +31,14 @@ namespace DocSharp {
         static void GenerateDocumentation(MemberNode node, string path, int depth) {
             Directory.CreateDirectory(path);
             GeneratePage(path + "\\index." + extension, node, depth);
-            if (exporter != null)
-                exporter.Ping(node);
+            exporter?.Ping(node);
             foreach (MemberNode child in node.Nodes) {
                 if (child.exportable) {
-                    if (child.Kind >= Element.Functions)
+                    if (child.Kind >= Element.Functions) {
                         GeneratePage(path + '\\' + child.Name + '.' + extension, child, depth);
-                    else
+                    } else {
                         GenerateDocumentation(child, path + '\\' + child.Name, depth + 1);
+                    }
                 }
             }
         }
@@ -64,13 +64,14 @@ namespace DocSharp {
         /// <param name="locally">The current file is to be placed in the same folder as the index</param>
         /// <param name="path">Relative file system path to the checked node from the starting node</param>
         static void BuildMenu(ref string output, MemberNode node, MemberNode child, bool locally, string path = "") {
-            StringBuilder front = new StringBuilder();
+            StringBuilder front = new();
             bool appendToFront = true;
 
             int indentLength = 0;
             MemberNode testNode = node;
-            while ((testNode = (MemberNode)testNode.Parent) != null)
-                ++indentLength;
+            while ((testNode = (MemberNode)testNode.Parent) != null) {
+                indentLength++;
+            }
 
             foreach (MemberNode entry in node.Nodes) {
                 if (entry.exportable) {
@@ -79,17 +80,20 @@ namespace DocSharp {
                         .Replace(linkMarker, path + Utils.LocalLink(entry))
                         .Replace(indentMarker, indentLength != 0 ? "&nbsp;" + new string(' ', indentLength - 1) : string.Empty);
                     if (appendToFront) {
-                        if (entry == child)
+                        if (entry == child) {
                             appendToFront = false;
+                        }
                         front.Append(entryText);
-                    } else
+                    } else {
                         output += entryText;
+                    }
                 }
             }
 
             output = front.ToString() + output;
-            if (node.Parent != null)
+            if (node.Parent != null) {
                 BuildMenu(ref output, (MemberNode)node.Parent, node, false, !locally ? "..\\" + path : path);
+            }
         }
 
         /// <summary>
@@ -136,8 +140,9 @@ namespace DocSharp {
         /// <param name="title">Title of the content block</param>
         /// <returns></returns>
         static string ContentBlock(List<MemberNode> nodes, string title) {
-            if (nodes.Count == 0)
+            if (nodes.Count == 0) {
                 return string.Empty;
+            }
             nodes.Sort((MemberNode a, MemberNode b) => { return a.Name.CompareTo(b.Name); });
             StringBuilder block = new StringBuilder("<h1>").Append(title).Append("</h1><table>");
             IEnumerator enumer = nodes.GetEnumerator();
@@ -158,8 +163,9 @@ namespace DocSharp {
         /// <param name="titlePostfix">Postfix after visibility (e.g. functions)</param>
         static string VisibilityContentBlock(List<MemberNode> nodes, string titlePostfix) {
             List<MemberNode>[] outs = new List<MemberNode>[(int)Visibility.Public * 2];
-            for (int i = 0; i < outs.Length; ++i)
-                outs[i] = new List<MemberNode>();
+            for (int i = 0; i < outs.Length; i++) {
+                outs[i] = [];
+            }
 
             IEnumerator enumer = nodes.GetEnumerator();
             while (enumer.MoveNext()) {
@@ -169,7 +175,7 @@ namespace DocSharp {
             }
 
             titlePostfix = ' ' + titlePostfix;
-            StringBuilder output = new StringBuilder();
+            StringBuilder output = new();
             for (int i = (int)Visibility.Public - 1; i > 0; --i) {
                 output.Append(ContentBlock(outs[i], ((Visibility)(i + 1)).ToString() + titlePostfix));
                 output.Append(ContentBlock(outs[i + (int)Visibility.Public],
@@ -184,8 +190,9 @@ namespace DocSharp {
         /// </summary>
         static string Content(MemberNode node) {
             List<MemberNode>[] types = new List<MemberNode>[(int)Element.Variables + 1];
-            for (int i = 0; i <= (int)Element.Variables; ++i)
-                types[i] = new List<MemberNode>();
+            for (int i = 0; i <= (int)Element.Variables; i++) {
+                types[i] = [];
+            }
 
             IEnumerator enumer = node.Nodes.GetEnumerator();
             while (enumer.MoveNext()) {
@@ -194,9 +201,10 @@ namespace DocSharp {
                     types[(int)current.Kind].Add(current);
             }
 
-            StringBuilder output = new StringBuilder("<h1>");
-            if (node.name != null)
+            StringBuilder output = new("<h1>");
+            if (node.name != null) {
                 output.Append(HttpUtility.HtmlEncode(node.type)).Append(' ');
+            }
             output.Append(HttpUtility.HtmlEncode(node.name)).Append("</h1>");
 
             if (node.name != null) {
@@ -220,7 +228,7 @@ namespace DocSharp {
                     output.Append("<h1>Parameters</h1>").Append("<table>");
                     BlockStart();
                     string safeName = HttpUtility.HtmlEncode(node.name);
-                    string[] definedParams = safeName.Substring(safeName.IndexOf('(') + 1).Split(',', ')');
+                    string[] definedParams = safeName[(safeName.IndexOf('(') + 1)..].Split(',', ')');
                     string[] parameters;
                     while ((parameters = Utils.RemoveParam(ref summary)) != null) {
                         string paramType = string.Empty;
@@ -228,10 +236,11 @@ namespace DocSharp {
                             if (definedParam.Contains(parameters[0])) {
                                 string cut = definedParam;
                                 int eqPos;
-                                if ((eqPos = cut.IndexOf('=')) != -1) // remove default value
-                                    cut = cut.Substring(0, eqPos).Trim();
+                                if ((eqPos = cut.IndexOf('=')) != -1) { // remove default value
+                                    cut = cut[..eqPos].Trim();
+                                }
                                 if (cut.EndsWith(parameters[0])) {
-                                    cut = cut.Substring(0, cut.LastIndexOf(parameters[0]));
+                                    cut = cut[..cut.LastIndexOf(parameters[0])];
                                     string trim = cut.Trim();
                                     // if it doesn't end with a whitespace, it's another param that ends the same way
                                     if (cut.Length != trim.Length) {
@@ -241,7 +250,7 @@ namespace DocSharp {
                                 }
                             }
                         }
-                        BlockAppend(output, HttpUtility.HtmlEncode(paramType) + " <b>" + parameters[0] + "</b>", parameters[1]);
+                        BlockAppend(output, paramType + " <b>" + parameters[0] + "</b>", parameters[1]);
                     }
                     output.Append("</table>");
                 }
@@ -255,10 +264,11 @@ namespace DocSharp {
                 HashSet<MemberNode> referencedBy = node.export.referencedBy;
                 output.Append("<h1>See also</h1>").Append("<table>");
                 BlockStart();
-                foreach (MemberNode reference in referencedBy)
-                    if (reference.exportable)
-                        BlockAppend(output, Utils.FullyQualifiedName(reference),
-                            Utils.QuickSummary(reference.summary));
+                foreach (MemberNode reference in referencedBy) {
+                    if (reference.exportable) {
+                        BlockAppend(output, Utils.FullyQualifiedName(reference), Utils.QuickSummary(reference.summary));
+                    }
+                }
                 output.Append("</table>");
             }
 

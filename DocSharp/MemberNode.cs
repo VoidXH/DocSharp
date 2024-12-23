@@ -5,7 +5,7 @@ namespace DocSharp {
     /// <summary>
     /// A <see cref="TreeNode"/> with program structure member data.
     /// </summary>
-    class MemberNode : TreeNode, IComparable<MemberNode> {
+    class MemberNode(string text) : TreeNode(text), IComparable<MemberNode> {
         public bool exportable;
         public string name;
         public string attributes;
@@ -22,11 +22,6 @@ namespace DocSharp {
 
         public ExportInfo export;
 
-        /// <summary>
-        /// Create a member with a set header.
-        /// </summary>
-        public MemberNode(string text) : base(text) { }
-
         public static MemberNode MakeNamespace(string text) {
             MemberNode node = new(text) {
                 Kind = Element.Namespaces,
@@ -38,7 +33,7 @@ namespace DocSharp {
                 extends = string.Empty,
                 modifiers = string.Empty,
                 summary = string.Empty,
-                type = string.Empty,
+                type = Parser._namespace,
                 export = new ExportInfo()
             };
             return node;

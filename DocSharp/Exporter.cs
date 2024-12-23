@@ -122,7 +122,11 @@ namespace DocSharp {
             }
             engine.UpdateStatus("Finished!");
             engine.UpdateProgressBar(100);
-            Process.Start(path);
+            try {
+                Process.Start(path);
+            } catch {
+                // Needs admin
+            }
         }
 
         /// <summary>
