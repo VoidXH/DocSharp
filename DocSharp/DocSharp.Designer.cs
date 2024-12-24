@@ -58,6 +58,7 @@
             statusbar = new System.Windows.Forms.StatusStrip();
             progressBar = new System.Windows.Forms.ToolStripProgressBar();
             progressLabel = new System.Windows.Forms.ToolStripStatusLabel();
+            exportClassMap = new System.Windows.Forms.CheckBox();
             menu.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)mainSplit).BeginInit();
             mainSplit.Panel1.SuspendLayout();
@@ -119,7 +120,7 @@
             // sourceInfo
             // 
             sourceInfo.Dock = System.Windows.Forms.DockStyle.Fill;
-            sourceInfo.Font = new System.Drawing.Font("Lucida Sans Unicode", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            sourceInfo.Font = new System.Drawing.Font("Lucida Sans Unicode", 8.25F);
             sourceInfo.Location = new System.Drawing.Point(0, 0);
             sourceInfo.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             sourceInfo.Name = "sourceInfo";
@@ -160,6 +161,7 @@
             // 
             // leftSplit.Panel1
             // 
+            leftSplit.Panel1.Controls.Add(exportClassMap);
             leftSplit.Panel1.Controls.Add(ignore);
             leftSplit.Panel1.Controls.Add(ignoreLabel);
             leftSplit.Panel1.Controls.Add(gitignore);
@@ -354,7 +356,7 @@
             // settingsLabel
             // 
             settingsLabel.AutoSize = true;
-            settingsLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
+            settingsLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold);
             settingsLabel.Location = new System.Drawing.Point(10, 10);
             settingsLabel.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             settingsLabel.Name = "settingsLabel";
@@ -452,6 +454,17 @@
             progressLabel.Name = "progressLabel";
             progressLabel.Size = new System.Drawing.Size(0, 19);
             // 
+            // exportClassMap
+            // 
+            exportClassMap.AutoSize = true;
+            exportClassMap.Location = new System.Drawing.Point(173, 126);
+            exportClassMap.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
+            exportClassMap.Name = "exportClassMap";
+            exportClassMap.Size = new System.Drawing.Size(115, 19);
+            exportClassMap.TabIndex = 1141;
+            exportClassMap.Text = "Export class map";
+            exportClassMap.UseVisualStyleBackColor = true;
+            // 
             // DocSharp
             // 
             AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
@@ -522,6 +535,7 @@
         private System.Windows.Forms.CheckBox gitignore;
         private System.Windows.Forms.Label ignoreLabel;
         private System.Windows.Forms.TextBox ignore;
+        private System.Windows.Forms.CheckBox exportClassMap;
     }
 }
 

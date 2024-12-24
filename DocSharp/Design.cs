@@ -20,6 +20,9 @@ namespace DocSharp {
         /// </summary>
         public static string extension = "html";
 
+        /// <summary>
+        /// Reference to the controlling class for feedback and reading settings.
+        /// </summary>
         static Exporter exporter;
 
         /// <summary>
@@ -73,6 +76,12 @@ namespace DocSharp {
                 indentLength++;
             }
 
+            if (indentLength == 0 && exporter.ExportClassMap) {
+                front.Append(menuElement.Replace(elementMarker, "Class Map")
+                    .Replace(linkMarker, path + "_classmap." + extension)
+                    .Replace(indentMarker, string.Empty));
+            }
+
             foreach (MemberNode entry in node.Nodes) {
                 if (entry.exportable) {
                     string entryText = !path.Equals(string.Empty) && entry.Nodes.Count != 0 ? menuElement : menuSubelement;
@@ -105,8 +114,7 @@ namespace DocSharp {
             string menuBuild = string.Empty;
             BuildMenu(ref menuBuild, from, null, locally);
             return baseBuild.Replace(titleMarker, from.Name)
-                .Replace(menuMarker, Utils.Indent(menuBuild.Trim(),
-                    Utils.SpacesBefore(baseBuild, baseBuild.IndexOf(menuMarker))));
+                .Replace(menuMarker, Utils.Indent(menuBuild.Trim(), Utils.SpacesBefore(baseBuild, baseBuild.IndexOf(menuMarker))));
         }
 
         static bool firstEntry, evenRow;
@@ -197,8 +205,9 @@ namespace DocSharp {
             IEnumerator enumer = node.Nodes.GetEnumerator();
             while (enumer.MoveNext()) {
                 MemberNode current = (MemberNode)enumer.Current;
-                if (current.exportable)
+                if (current.exportable) {
                     types[(int)current.Kind].Add(current);
+                }
             }
 
             StringBuilder output = new("<h1>");
@@ -225,7 +234,12 @@ namespace DocSharp {
                 output.Append("</table>");
 
                 if (summary.Contains("</param>")) {
-                    output.Append("<h1>Parameters</h1>").Append("<table>");
+                    if (node.Kind == Element.Classes) {
+                        output.Append("<h1>Constructor parameters</h1>");
+                    } else {
+                        output.Append("<h1>Parameters</h1>");
+                    }
+                    output.Append("<table>");
                     BlockStart();
                     string safeName = HttpUtility.HtmlEncode(node.name);
                     string[] definedParams = safeName[(safeName.IndexOf('(') + 1)..].Split(',', ')');

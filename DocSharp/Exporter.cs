@@ -6,8 +6,8 @@ namespace DocSharp {
     /// <summary>
     /// Makes a bridge between the export process and the GUI.
     /// </summary>
-    class Exporter {
-        readonly TaskEngine engine;
+    /// <param name="engine">Task guard and GUI updater</param>
+    class Exporter(TaskEngine engine) {
         MemberNode node;
         string path;
         int exported, exportables;
@@ -48,16 +48,15 @@ namespace DocSharp {
         public bool ExpandStructs { get; set; }
 
         /// <summary>
-        /// Makes a bridge between the export process and the GUI.
+        /// Create a separate page with a list of all classes and their summaries.
         /// </summary>
-        /// <param name="engine">Task guard and GUI updater</param>
-        public Exporter(TaskEngine engine) => this.engine = engine;
+        public bool ExportClassMap { get; set; }
 
         /// <summary>
         /// Called when a node was exported.
         /// </summary>
         public void Ping(TreeNode node) {
-            ++exported;
+            exported++;
             engine.UpdateStatusLazy(string.Format("Exporting {0} ({1}%)...", node.Name,
                 (exported * 100.0 / exportables).ToString("0.00")));
             engine.UpdateProgressBar(exported * 100 / exportables);
@@ -72,17 +71,21 @@ namespace DocSharp {
                 child.exportable = false;
                 if (child.Vis == Visibility.Default || (child.Vis == Visibility.Public && ExportPublic) ||
                     (child.Vis == Visibility.Internal && ExportInternal) ||
-                    (child.Vis == Visibility.Protected && ExportProtected) || (child.Vis == Visibility.Private && ExportPrivate))
+                    (child.Vis == Visibility.Protected && ExportProtected) || (child.Vis == Visibility.Private && ExportPrivate)) {
                     child.exportable = true;
+                }
                 if (child.exportable) {
                     if (child.Kind == Element.Enums) {
-                        if (ExpandEnums)
+                        if (ExpandEnums) {
                             SetExportability(child);
+                        }
                     } else if (child.Kind == Element.Structs) {
-                        if (ExpandStructs)
+                        if (ExpandStructs) {
                             SetExportability(child);
-                    } else
+                        }
+                    } else {
                         SetExportability(child);
+                    }
                 }
             }
         }
@@ -96,11 +99,14 @@ namespace DocSharp {
                 export.summary = Utils.GetTag(node.summary, "summary", node);
                 export.returns = Utils.GetTag(node.summary, "returns", node);
             }
-            if (node.name == null || node.Kind < Element.Functions)
-                ++exportables;
-            foreach (MemberNode child in node.Nodes)
-                if (child.Tag == null || node.exportable)
+            if (node.name == null || node.Kind < Element.Functions) {
+                exportables++;
+            }
+            foreach (MemberNode child in node.Nodes) {
+                if (child.Tag == null || node.exportable) {
                     Preprocess(child);
+                }
+            }
         }
 
         /// <summary>
@@ -119,6 +125,10 @@ namespace DocSharp {
             if (GenerateFillers) {
                 engine.UpdateStatus("Generating index.php fillers...");
                 Utils.FillWithPHP(new DirectoryInfo(path));
+            }
+            if (ExportClassMap) {
+                engine.UpdateStatus("Generating class map...");
+                Design.GenerateClassMap(path, node);
             }
             engine.UpdateStatus("Finished!");
             engine.UpdateProgressBar(100);

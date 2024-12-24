@@ -16,7 +16,7 @@ namespace DocSharp.Tests {
 #if RELEASE  &&  (TEST || UNDEFINED) && true // Tests the preprocessor instruction parser
         public class EmbeddedClass { public const string Hello = "Hello, \"World\"!"; }
 #endif
-        readonly GenericTestClass<string, int> GenericTestField = new GenericTestClass<string, int>();
+        readonly GenericTestClass<string, int> GenericTestField = new();
         /// <summary>
         /// Test abstract functions.
         /// </summary>

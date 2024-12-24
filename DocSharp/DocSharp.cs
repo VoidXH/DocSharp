@@ -67,6 +67,7 @@ namespace DocSharp {
             expandEnums.Checked = Properties.Settings.Default.ExpandEnums;
             expandStructs.Checked = Properties.Settings.Default.ExpandStructs;
             exportAttributes.Checked = Properties.Settings.Default.ExportAttributes;
+            exportClassMap.Checked = Properties.Settings.Default.exportClassMap;
             extension.Text = Properties.Settings.Default.FileExtension;
             defines.Text = Properties.Settings.Default.DefineConstants;
             phpFillers.Checked = Properties.Settings.Default.PhpFillers;
@@ -85,6 +86,7 @@ namespace DocSharp {
             Properties.Settings.Default.ExpandEnums = expandEnums.Checked;
             Properties.Settings.Default.ExpandStructs = expandStructs.Checked;
             Properties.Settings.Default.ExportAttributes = exportAttributes.Checked;
+            Properties.Settings.Default.exportClassMap = exportClassMap.Checked;
             Properties.Settings.Default.FileExtension = extension.Text;
             Properties.Settings.Default.DefineConstants = defines.Text;
             Properties.Settings.Default.PhpFillers = phpFillers.Checked;
@@ -126,7 +128,7 @@ namespace DocSharp {
             if (gitignore.Checked && File.Exists(gitignorePath)) {
                 excluded.AddRange(File.ReadAllLines(gitignorePath));
             }
-            Parser parser = new(path, import, sourceInfo, defines, excluded.ToArray(), task);
+            Parser parser = new(path, import, sourceInfo, defines, [.. excluded], task);
             task.Run(parser.Process);
         }
 
@@ -205,7 +207,8 @@ namespace DocSharp {
                         ExportProtected = exportProtected.Checked,
                         ExportPrivate = exportPrivate.Checked,
                         ExpandEnums = expandEnums.Checked,
-                        ExpandStructs = expandStructs.Checked
+                        ExpandStructs = expandStructs.Checked,
+                        ExportClassMap = exportClassMap.Checked
                     };
                     exporter.GenerateDocumentation(import, folderDialog.SelectedPath);
                 }
@@ -216,6 +219,6 @@ namespace DocSharp {
         /// Show "About".
         /// </summary>
         void AboutToolStripMenuItem_Click(object _, EventArgs e) =>
-            MessageBox.Show(string.Format("Doc# v1.1 by VoidX\nhttp://en.sbence.hu/"), "About");
+            MessageBox.Show(string.Format("Doc# v1.2 by VoidX\nhttp://en.sbence.hu/"), "About");
     }
 }

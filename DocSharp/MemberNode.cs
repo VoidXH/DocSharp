@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Windows.Forms;
 
 namespace DocSharp {
@@ -6,7 +7,14 @@ namespace DocSharp {
     /// A <see cref="TreeNode"/> with program structure member data.
     /// </summary>
     class MemberNode(string text) : TreeNode(text), IComparable<MemberNode> {
+        /// <summary>
+        /// Filled by the <see cref="Exporter"/>, marks a node to be present in the generated web documentation.
+        /// </summary>
         public bool exportable;
+
+        /// <summary>
+        /// Name of the element, without UML marking. The UML-compatible name is under <see cref="TreeNode.Name"/>.
+        /// </summary>
         public string name;
         public string attributes;
         public string defaultValue;
@@ -60,6 +68,19 @@ namespace DocSharp {
                 Name = other.Name;
                 Text = other.Text;
             }
+        }
+
+        /// <summary>
+        /// Get the path where this node will be exported from the root folder.
+        /// </summary>
+        public string GetExportPath(string extension) {
+            string result = "index." + extension;
+            TreeNode node = this;
+            do {
+                result = Path.Combine(((MemberNode)node).name, result);
+                node = node.Parent;
+            } while (node != null && node.Parent != null);
+            return result;
         }
 
         /// <summary>

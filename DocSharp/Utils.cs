@@ -22,16 +22,16 @@ namespace DocSharp {
         /// <summary>
         /// Element modifiers.
         /// </summary>
-        public static readonly string[] modifiers = {
+        public static readonly string[] modifiers = [
             "abstract ", "async ", "const ", "event ", "extern ", "new ", "override ",
             "readonly ", "sealed ", "static ", "unsafe ", "virtual ", "volatile "
-        };
+        ];
 
         /// <summary>
         /// Visibility marker characters. Their position in the array must match their position in
         /// <see cref="Visibility"/>.
         /// </summary>
-        public static readonly char[] visibilities = { 'x', '-', '#', '~', '+' };
+        public static readonly char[] visibilities = ['x', '-', '#', '~', '+'];
     }
 
     /// <summary>
@@ -110,7 +110,7 @@ namespace DocSharp {
         /// Get the fully qualified name of a node.
         /// </summary>
         public static string FullyQualifiedName(MemberNode node) {
-            List<string> chain = new();
+            List<string> chain = [];
             while (node != null) {
                 if (node.name != null) {
                     chain.Add(HttpUtility.HtmlEncode(node.name));
@@ -118,7 +118,7 @@ namespace DocSharp {
                 node = (MemberNode)node.Parent;
             }
             chain.Reverse();
-            return string.Join(".", chain.ToArray());
+            return string.Join(".", [.. chain]);
         }
 
         /// <summary>
@@ -251,6 +251,7 @@ namespace DocSharp {
             int summaryStart = fullSummary.IndexOf("<summary>") + 9,
                 summaryLength = fullSummary.IndexOf("</summary>") - summaryStart;
             return summaryStart != 8 && summaryLength > 0 ? newLineToBr().Replace(fullSummary.Substring(summaryStart, summaryLength)
+                .Replace("<paramref name=\"", string.Empty)
                 .Replace("<see cref=\"", string.Empty).Replace("\"/>", ""), " ").Trim() : string.Empty;
         }
 
@@ -309,10 +310,10 @@ namespace DocSharp {
             int namePos = source.IndexOf("name", startPos); if (namePos == -1) return null;
             int nameStart = source.IndexOf('"', namePos) + 1; if (nameStart == -1) return null;
             int nameEnd = source.IndexOf('"', nameStart); if (nameEnd == -1) return null;
-            string[] output = new string[2] {
+            string[] output = [
                 source[nameStart..nameEnd ],
                 source.Substring(cutPos + 1, endPos - cutPos - 1)
-            };
+            ];
             source = source[..startPos].TrimEnd() + source[(endPos + 8)..].TrimStart();
             return output;
         }

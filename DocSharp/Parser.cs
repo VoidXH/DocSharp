@@ -89,7 +89,7 @@ namespace DocSharp {
         /// </summary>
         /// <param name="parse">Condition</param>
         /// <param name="defineConstants">Constants that are true</param>
-        bool ParseSimpleIf(string parse, string[] defineConstants) {
+        static bool ParseSimpleIf(string parse, string[] defineConstants) {
             int bracketPos;
             while ((bracketPos = parse.LastIndexOf('(')) != -1) {
                 int endBracket = parse.IndexOf(')', bracketPos + 1);
@@ -165,15 +165,15 @@ namespace DocSharp {
                         inTemplate = false;
                         bool instruction = code[i] == ';', block = code[i] == '{', closing = code[i] == '}';
                         if (block) {
-                            ++depth;
+                            depth++;
                         }
                         if (closing) {
-                            --depth;
+                            depth--;
                             if (inRemovableBlock && depth < lastRemovableDepth) {
                                 inRemovableBlock = false;
                                 lastEnding = i;
                                 if (propertyArray) {
-                                    ++lastEnding;
+                                    lastEnding++;
                                     propertyArray = false;
                                     break;
                                 }
@@ -362,7 +362,14 @@ namespace DocSharp {
                                 }
                                 newNode.export = new ExportInfo();
                             } else {
-                                newNode.name = cutout;
+                                // Inline constructors shall not be included in class names
+                                if (kind == Element.Classes) {
+                                    int cutoutParenthesis = cutout.IndexOf('(');
+                                    newNode.name = cutoutParenthesis == -1 ? cutout : cutout[..cutoutParenthesis];
+                                } else {
+                                    newNode.name = cutout;
+                                }
+
                                 newNode.attributes = attributes;
                                 newNode.defaultValue = defaultValue;
                                 newNode.extends = extends;
